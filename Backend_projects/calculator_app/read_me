@@ -1,19 +1,34 @@
-This is my second project as a fullstack engineer
+# Simple Calculator API
 
-this a simple calculator app
+This is my second project as a Fullstack Engineer — a simple calculator application with JWT-based authentication and basic arithmetic API endpoints.
 
-this has 5 api call
-->login
-->add
-->sub
-->mul
-->div
+---
 
+## Features
 
-values are passed as parameters
+- User authentication with JWT token validation
+- Five API endpoints for calculator operations:
+  - **Login**: Authenticate user and get JWT token
+  - **Add**: Add two numbers
+  - **Subtract**: Subtract two numbers
+  - **Multiply**: Multiply two numbers
+  - **Divide**: Divide two numbers
 
-jwt token validation is done 
+All arithmetic values are passed as query parameters.
 
-tech used--> Flask and postman
+---
 
-user is hardcoded
+## Technology Stack
+
+- Backend: Flask (Python)
+- API Testing: Postman
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.x installed
+- Flask installed (`pip install flask`)
+- Postman or any API client to test endpoints
