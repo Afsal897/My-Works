@@ -1,0 +1,19 @@
+This is my second project as a fullstack engineer
+
+this a simple calculator app
+
+this has 5 api call
+->login
+->add
+->sub
+->mul
+->div
+
+
+values are passed as parameters
+
+jwt token validation is done 
+
+tech used--> Flask and postman
+
+user is hardcoded
