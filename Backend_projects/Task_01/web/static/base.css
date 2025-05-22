@@ -1,0 +1,27 @@
+/* static/base.css */
+body {
+    background-color: #f0f0f0;
+}
+
+.navbar {
+    background-color: #333;
+    padding: 15px;
+}
+
+.navbar .nav-logo {
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.navbar .nav-links {
+    list-style: none;
+    display: flex;
+    gap: 15px;
+}
+
+.navbar .nav-links li a {
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+}

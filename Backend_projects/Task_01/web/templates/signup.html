@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Signup{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='signup.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="signup-wrapper">
+    <div class="form-container">
+        <h2>Sign Up</h2>
+        <form action="/signup" method="POST">
+            <input type="text" name="username" placeholder="Username" required><br>
+            <input type="password" name="password1" placeholder="Password" required><br>
+            <input type="password" name="password2" placeholder="Confirm Password" required><br>
+            <input type="submit" value="Create Account">
+        </form>
+        <p>Already have an account? <a href="/">Login</a></p>
+    </div>
+</div>
+{% endblock %}

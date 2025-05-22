@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+{% endblock %}
+{% block content %}
+<div class="home-wrapper">
+    <h2 id="welcome">Welcome, {{ username.upper() }}!</h2>
+    <form method="POST" action="/upload" enctype="multipart/form-data" class="upload-form">
+        <textarea name="note" id="area" placeholder="Description Of The Product..." required></textarea>
+        <input type="file" name="file">
+        <input type="submit" value="Upload">
+    </form>
+    <div>
+        <!-- Display content -->
+        {% for content in contents %}
+        <div style="margin:20px;" class="content-item" data-id="{{ content.id }}">
+            <p class="desc">{{ content.description }}</p>
+            <img src="{{ url_for('static', filename='uploads/' + content.filename) }}" style="width:200px;height:auto;">
+            
+            <div class="action-buttons">
+                <!-- Download -->
+                <a href="{{ url_for('views.download_content', filename=content.filename) }}" class="btn-download">Download</a>
+
+                <!-- Edit Description -->
+                <input type="text" value="{{ content.description }}" class="edit-input">
+                <button onclick="updateDescription({{ content.id }})" class="btn-edit">Update</button>
+
+                <!-- Delete -->
+                <button onclick="deleteContent({{ content.id }})" class="btn-delete">Delete</button>
+            </div>
+        </div>
+        {% else %}
+            <p>No uploads yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

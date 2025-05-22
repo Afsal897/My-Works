@@ -1,0 +1,72 @@
+/* Alert Wrapper */
+.alert-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+/* Alert Box Base Style */
+.alert-wrapper .alert {
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    padding: 15px 20px;
+    border-radius: 10px;
+    font-size: 16px;
+    line-height: 1.5;
+    animation: slideDown 0.5s ease forwards;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-bottom: 15px;
+}
+
+/* Success Alert */
+.alert-wrapper .alert-success {
+    background: #d1f2eb;
+    color: #1e8449;
+    border: 1px solid #a3e4d7;
+}
+
+/* Error Alert */
+.alert-wrapper .alert-danger {
+    background: #fdecea;
+    color: #c0392b;
+    border: 1px solid #f5c6cb;
+}
+
+/* Close Button */
+.alert-wrapper .close-btn {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    color: inherit;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.alert-wrapper .close-btn:hover {
+    color: #000;
+}
+
+/* Slide Down Animation */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 500px) {
+    .alert-wrapper .alert {
+        font-size: 14px;
+        padding: 12px 15px;
+    }
+}
