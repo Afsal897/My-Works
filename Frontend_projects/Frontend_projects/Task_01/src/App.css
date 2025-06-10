@@ -1,0 +1,67 @@
+/* HomePage.css
+
+body.modal-open {
+  overflow: hidden; 
+}
+
+h4 {
+  font-weight: 600;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.card-text {
+  font-size: 1rem;
+  color: #333;
+}
+
+.card:hover {
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
+  transition: box-shadow 0.3s ease;
+}
+
+.btn:focus,
+.btn:active {
+  outline: none;
+  box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.5);
+}
+
+.modal-content {
+  border-radius: 0.5rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.modal-body p {
+  font-size: 1.1rem;
+  color: #444;
+}
+
+.modal-header {
+  border-bottom: 1px solid #dee2e6;
+}
+
+.fixed-bottom {
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1030;
+}
+
+input[type="file"] {
+  cursor: pointer;
+}
+
+@media (max-width: 576px) {
+  .modal-dialog {
+    margin: 1rem;
+  }
+} */
+
+.pagination-fixed-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: transparent;
+  padding: 10px 0;
+  /* box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15); */
+  z-index: 1050; 
+}
