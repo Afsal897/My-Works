@@ -24,11 +24,12 @@ interface ChatWindowProps {
   messages: Message[];
   loadingMessages: boolean;
   onMessagesScroll: (e: React.UIEvent<HTMLDivElement>) => void;
+  messagesContainerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 const chatBubbleStyle = (isMe: boolean): React.CSSProperties => ({
   alignSelf: isMe ? "flex-end" : "flex-start",
-  backgroundColor: isMe ? "#0084ff" : "#e5e5ea",
+  backgroundColor: isMe ? "#63b3ed" : "#e5e5ea",
   color: isMe ? "white" : "black",
   padding: "8px 12px",
   borderRadius: 18,
@@ -43,7 +44,7 @@ const handleDownload = async (fileId?: number, filename?: string) => {
   }
   try {
     const response = await api.get(
-      `${import.meta.env.VITE_API_URL}/download/${fileId}`,
+      `${import.meta.env.VITE_API_URL}/chat/download/${fileId}`,
       { responseType: "blob" }
     );
 
@@ -69,8 +70,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   messages,
   loadingMessages,
   onMessagesScroll,
+  messagesContainerRef,
 }) => {
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when messages change
@@ -82,6 +83,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     <>
       <div
         style={{
+          position: "sticky",
+          top: 0,
           padding: 10,
           borderBottom: "1px solid #ddd",
           fontWeight: "bold",
@@ -96,21 +99,22 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
       <div
         ref={messagesContainerRef}
+        onScroll={onMessagesScroll}
         style={{
           flexGrow: 1,
           overflowY: "auto",
+          height: "90%",
           padding: 10,
           display: "flex",
           flexDirection: "column",
         }}
-        onScroll={onMessagesScroll}
       >
         {selectedFriend && messages.length === 0 && !loadingMessages && (
           <div
             style={{
               textAlign: "center",
               marginTop: 20,
-              color: "#888",
+              color: "#87cefa",
               fontSize: 16,
             }}
           >

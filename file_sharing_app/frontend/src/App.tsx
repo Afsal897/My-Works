@@ -17,8 +17,23 @@ import { NavbarProvider } from "./pages/home/navbarContext";
 import History from "./pages/home/history";
 import Notification from "./pages/home/notifications";
 import SharedFilePage from "./pages/home/shared";
+import { useEffect } from "react";
 
 function App() {
+
+  useEffect(() => {
+  const handleStorageChange = (event: StorageEvent) => {
+    if (event.key === "logout") {
+      localStorage.removeItem("logout")
+      // Token was cleared in another tab
+      window.location.href = "/login";
+    }
+  };
+
+  window.addEventListener("storage", handleStorageChange);
+  return () => window.removeEventListener("storage", handleStorageChange);
+}, []);
+
   return (
     <NavbarProvider>
       <Router>

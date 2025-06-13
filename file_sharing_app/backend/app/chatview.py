@@ -1,9 +1,10 @@
 from flask import Blueprint, request, jsonify, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from .models import Content, User, SharedFile, FriendRequest, Friendship, Message
+from .models import Content, User, Friendship, Message
 from . import db
-from datetime import datetime, timedelta
-from . import socketio
+from datetime import datetime
+from .utils import UPLOAD_FOLDER
+import os
 
 
 chat = Blueprint('chat', __name__)
@@ -99,6 +100,11 @@ def get_chat_messages(email):
     limit = int(request.args.get("limit", 30))
     offset = int(request.args.get("offset", 0))
 
+    total_messages = Message.query.filter(
+        ((Message.sender_id == current_user_id) & (Message.receiver_id == friend_id)) |
+        ((Message.sender_id == friend_id) & (Message.receiver_id == current_user_id))
+    ).count()
+
     messages = (
         Message.query.filter(
             ((Message.sender_id == current_user_id) & (Message.receiver_id == friend_id)) |
@@ -130,7 +136,15 @@ def get_chat_messages(email):
     } for msg in messages]
 
 
-    return jsonify(result), 200
+    return jsonify({
+        "messages": result,
+        "pagination": {
+            "limit": limit,
+            "offset": offset,
+            "total": total_messages,
+            "has_more": offset + limit < total_messages
+        }
+        }), 200
 
 
 @chat.route("/filenames", methods=["GET"])
@@ -144,3 +158,21 @@ def get_filenames():
         files_info.append({'file_id':content.id, 'filename': content.orginal_filename})
 
     return jsonify({"files" : files_info}),200
+
+
+@chat.route("/download/<int:file_id>", methods=["GET"])
+@jwt_required()
+def download_file(file_id):
+
+    # Fetch the file record
+    file_record = Content.query.get(file_id)
+    if not file_record:
+        return jsonify({"error": "File not found"}), 404
+
+    # Construct the file path
+    file_path = os.path.join(UPLOAD_FOLDER, file_record.modified_filename)
+
+    if not os.path.exists(file_path):
+        return jsonify({"error": "File not found on disk"}), 404
+
+    return send_file(file_path, as_attachment=True, download_name=file_record.orginal_filename)

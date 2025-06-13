@@ -10,6 +10,8 @@ function ResetPassword() {
   const token = searchParams.get("token");
 
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
   const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
 
@@ -63,7 +65,7 @@ function ResetPassword() {
         <div className="mb-3">
           <label className="form-label">New Password</label>
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             className="form-control"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -74,14 +76,25 @@ function ResetPassword() {
         <div className="mb-3">
           <label className="form-label">Confirm New Password</label>
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             className="form-control"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
         </div>
-
+        <div className="form-check mt-2">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            id="showPassword"
+            checked={showPassword}
+            onChange={() => setShowPassword(!showPassword)}
+          />
+          <label className="form-check-label" htmlFor="showPassword">
+            Show Password
+          </label>
+        </div>
         <button type="submit" className="btn btn-success">
           Reset Password
         </button>

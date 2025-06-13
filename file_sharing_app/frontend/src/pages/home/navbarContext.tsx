@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState } from "react";
-// import { fetchUserData } from "../../components/navbar";
 
 interface NavbarContextType {
   firstName: string;

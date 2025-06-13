@@ -6,6 +6,9 @@ function Logout() {
   useEffect(() => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
+    
+    localStorage.setItem("logout", Date.now().toString());
+
     navigate("/login");
   }, [navigate]);
   return <p>loging out....</p>;

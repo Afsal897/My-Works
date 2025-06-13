@@ -60,12 +60,20 @@ const ProfileForm: React.FC<Props> = ({
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(data.email)) {
       setError("Invalid email format.");
-      setTimeout(() => {
-          setError(null);
-        }, 1000);
       return;
     }
-
+    if(data.first_name.trim()===""){
+      setError("First name cannot be empty")
+      return
+    }
+    if(data.last_name.trim()===""){
+      setError("Last name cannot be empty")
+      return
+    }
+    if(data.email.trim()===""){
+      setError("Email cannot be empty")
+      return
+    }
     try {
       const res = await updateProfile(data);
       if (res.status === 200) {
@@ -85,15 +93,9 @@ const ProfileForm: React.FC<Props> = ({
         console.log("Profile updated successfully:", res);
       } else {
         setError(res.data.error);
-        setTimeout(() => {
-          setError(null);
-        }, 1000);
       }
     } catch {
       setError("Failed to update profile.");
-      setTimeout(() => {
-          setError(null);
-        }, 1000);
     }
   };
 
@@ -103,7 +105,7 @@ const ProfileForm: React.FC<Props> = ({
         <Col md={6}>
           <Form.Label>First Name</Form.Label>
           <Form.Control
-            {...register("first_name", { required: true })}
+            {...register("first_name")}
             readOnly={!editMode}
             isInvalid={!!errors.first_name}
           />
@@ -111,7 +113,7 @@ const ProfileForm: React.FC<Props> = ({
         <Col md={6}>
           <Form.Label>Last Name</Form.Label>
           <Form.Control
-            {...register("last_name", { required: true })}
+            {...register("last_name")}
             readOnly={!editMode}
             isInvalid={!!errors.last_name}
           />
@@ -121,7 +123,7 @@ const ProfileForm: React.FC<Props> = ({
         <Col md={6}>
           <Form.Label>Email</Form.Label>
           <Form.Control
-            {...register("email", { required: true })}
+            {...register("email")}
             readOnly={!editMode}
             isInvalid={!!errors.email}
           />

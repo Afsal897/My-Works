@@ -381,12 +381,9 @@ def history():
 
     data = SharedFile.query.filter(
     SharedFile.sharer_id == user.id,
-    # SharedFile.time != None
     ).order_by(SharedFile.time.desc())
-    print("count of shared files:", data.count())
  
     paginated = data.paginate(page=page, per_page=per_page, error_out=False)
-    print("paginated count:", paginated.total)
     history_data = []
     for shared in paginated.items:
             history_data.append({

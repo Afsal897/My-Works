@@ -17,6 +17,7 @@ const PasswordModal: React.FC<Props> = ({
 }) => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleSubmitPasswordChange = async () => {
@@ -60,7 +61,7 @@ const PasswordModal: React.FC<Props> = ({
           <Form.Group className="mb-3">
             <Form.Label>Old Password</Form.Label>
             <Form.Control
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
             />
@@ -68,7 +69,7 @@ const PasswordModal: React.FC<Props> = ({
           <Form.Group className="mb-3">
             <Form.Label>New Password</Form.Label>
             <Form.Control
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
             />
@@ -76,11 +77,23 @@ const PasswordModal: React.FC<Props> = ({
           <Form.Group className="mb-3">
             <Form.Label>Confirm Password</Form.Label>
             <Form.Control
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
           </Form.Group>
+          <div className="form-check mt-2">
+            <input
+              className="form-check-input"
+              type="checkbox"
+              id="showPassword"
+              checked={showPassword}
+              onChange={() => setShowPassword(!showPassword)}
+            />
+            <label className="form-check-label" htmlFor="showPassword">
+              Show Password
+            </label>
+          </div>
         </Form>
       </Modal.Body>
       <Modal.Footer>

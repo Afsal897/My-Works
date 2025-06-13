@@ -16,7 +16,7 @@
   height: 28px;
 }
 
-/* .tooltip-text {
+.tooltip-text {
   visibility: hidden;
   width: max-content;
   background-color: #333;
@@ -33,7 +33,7 @@
   opacity: 0;
   transition: opacity 0.3s ease;
   white-space: nowrap;
-} */
+}
 
 .icon-wrapper:hover .tooltip-text {
   visibility: visible;

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import api from "../../../api"; // adjust the import path
+import api from "../../../api";
 import type { Message } from "./chat";
 
 interface FileItem {
@@ -28,7 +28,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
     try {
       const response = await api.get("/chat/filenames");
       setFiles(response.data.files || []);
-      console.log(response.data)
+      console.log(response.data);
       setShowModal(true);
     } catch (err) {
       console.error("Failed to fetch filenames", err);
@@ -46,7 +46,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
 
     if (attachedFile) {
       // Send message with attached file info
-      
+
       handleSendMessage({
         content: newMessage,
         is_file: true,
@@ -168,8 +168,8 @@ const MessageInput: React.FC<MessageInputProps> = ({
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              height="20"
-              width="20"
+              height="30"
+              width="30"
               fill="#555"
               viewBox="0 0 24 24"
             >
@@ -182,7 +182,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
           onClick={() => onSendClick()}
           style={{
             marginLeft: 8,
-            backgroundColor: "#0084ff",
+            backgroundColor: "#63b3ed",
             border: "none",
             borderRadius: "50%",
             width: 40,

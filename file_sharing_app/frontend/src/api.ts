@@ -1,4 +1,4 @@
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError, AxiosHeaders } from "axios";
 import type { InternalAxiosRequestConfig, AxiosResponse } from "axios";
 
 const api = axios.create({
@@ -23,7 +23,36 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-  (response: AxiosResponse) => response,
+  async (response: AxiosResponse) => {
+    const originalRequest = response.config as InternalAxiosRequestConfig & {
+      _retry?: boolean;
+    };
+
+    // If response indicates token expired and we haven't retried yet
+    if (
+      (response.status === 401 || response.status === 422) &&
+      !originalRequest._retry
+    ) {
+      originalRequest._retry = true;
+
+      try {
+        const newToken = await refreshAuthToken();
+        localStorage.setItem("access_token", newToken);
+        originalRequest.headers = AxiosHeaders.from({
+          ...originalRequest.headers,
+          Authorization: `Bearer ${newToken}`,
+        });
+
+        // Retry the original request with the new token
+        return api(originalRequest);
+      } catch (refreshError) {
+        localStorage.clear();
+        window.location.href = "/";
+        return Promise.reject(refreshError);
+      }
+    }
+    return response;
+  },
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;

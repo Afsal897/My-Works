@@ -7,6 +7,8 @@ import "react-toastify/dist/ReactToastify.css";
 function Login() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,13 +51,25 @@ function Login() {
                 Password <span className="text-danger">*</span>
               </label>
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 className="form-control"
                 id="password"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+              <div className="form-check mt-2">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  id="showPassword"
+                  checked={showPassword}
+                  onChange={() => setShowPassword(!showPassword)}
+                />
+                <label className="form-check-label" htmlFor="showPassword">
+                  Show Password
+                </label>
+              </div>
             </div>
 
             <div className="d-grid gap-2 mb-3">
@@ -64,8 +78,8 @@ function Login() {
               </button>
             </div>
             <a href="/forgot-password" className="text-decoration-none">
-                Forgot Password ?
-              </a>
+              Forgot Password ?
+            </a>
 
             <p className="text-center text-muted">
               Don't have an account?{" "}

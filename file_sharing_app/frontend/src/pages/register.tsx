@@ -9,6 +9,8 @@ function Register() {
   const [last_name, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
   const [confirmpassword, setConfirmpassword] = useState("");
   const [dob, setDob] = useState("");
   const [isHovered, setIsHovered] = useState(false);
@@ -170,7 +172,7 @@ function Register() {
               Password <span className="text-danger">*</span>
             </label>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               className="form-control"
               id="password"
               placeholder="Password"
@@ -184,13 +186,25 @@ function Register() {
               Confirm Password <span className="text-danger">*</span>
             </label>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               className="form-control"
               id="confirmpassword"
               placeholder="Confirm Password"
               value={confirmpassword}
               onChange={(e) => setConfirmpassword(e.target.value)}
             />
+            <div className="form-check mt-2">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                id="showPassword"
+                checked={showPassword}
+                onChange={() => setShowPassword(!showPassword)}
+              />
+              <label className="form-check-label" htmlFor="showPassword">
+                Show Password
+              </label>
+            </div>
           </div>
 
           <div className="mb-3">

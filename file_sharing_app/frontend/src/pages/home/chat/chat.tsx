@@ -29,11 +29,9 @@ const FRIENDS_PAGE_SIZE = 20;
 const MESSAGES_PAGE_SIZE = 30;
 
 const Chat: React.FC = () => {
-  // Navbar context
   const { email } = useNavbarContext();
   const currentUser = { email };
 
-  // State
   const [friends, setFriends] = useState<Friend[]>([]);
   const [friendPage, setFriendPage] = useState(1);
   const [friendTotalPages, setFriendTotalPages] = useState(1);
@@ -47,12 +45,11 @@ const Chat: React.FC = () => {
   const [newMessage, setNewMessage] = useState("");
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  // Refs
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevScrollHeightRef = useRef<number>(0); // NEW
 
-  // Debounce Hook
   const useDebounce = (callback: (value: string) => void, delay: number) =>
     useCallback(
       (value: string) => {
@@ -62,7 +59,6 @@ const Chat: React.FC = () => {
       [callback, delay]
     );
 
-  // Load Friends
   const loadFriends = async (page: number, search: string) => {
     setLoadingFriends(true);
     try {
@@ -102,38 +98,53 @@ const Chat: React.FC = () => {
     }
   };
 
-  const loadMessages = async (friendEmail: string, offset: number) => {
-    setLoadingMessages(true);
-    try {
-      const res = await api.get(`/chat/chat/${friendEmail}`, {
-        params: { limit: MESSAGES_PAGE_SIZE, offset },
-      });
-      setMessages((prev) => (offset === 0 ? res.data : [...res.data, ...prev]));
-      setHasMoreMessages(res.data.length === MESSAGES_PAGE_SIZE);
-      console.log(messages);
-    } catch (err) {
-      console.error("Failed to load messages", err);
-    } finally {
-      setLoadingMessages(false);
-    }
-  };
+const loadMessages = async (friendEmail: string, offset: number) => {
+  setLoadingMessages(true);
+  try {
+    const res = await api.get(`/chat/chat/${friendEmail}`, {
+      params: { limit: MESSAGES_PAGE_SIZE, offset },
+    });
+
+    const newMessages = res.data.messages;
+    const pagination = res.data.pagination;
+
+    setMessages((prev) => (offset === 0 ? newMessages : [...newMessages, ...prev]));
+    setHasMoreMessages(pagination.has_more);
+
+    console.log("Loaded messages:", newMessages);
+    console.log("Pagination info:", pagination);
+  } catch (err) {
+    console.error("Failed to load messages", err);
+  } finally {
+    setLoadingMessages(false);
+  }
+};
+
 
   const onMessagesScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const threshold = 30;
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
 
-    // Only load more when scrolled near the top
-    const isNearTop = e.currentTarget.scrollTop <= threshold;
-
-    if (isNearTop && !loadingMessages && hasMoreMessages && selectedFriend) {
-      const newOffset = messageOffset + MESSAGES_PAGE_SIZE;
-
-      setLoadingMessages(true); // prevent duplicate loads
-      setMessageOffset(newOffset);
-      loadMessages(selectedFriend.email, newOffset).finally(() =>
-        setLoadingMessages(false)
-      );
+    const scrollPercent = (scrollTop / (scrollHeight - clientHeight)) * 100;
+    console.log("hello there")
+    if (
+      scrollPercent < 30 &&
+      !loadingMessages &&
+      hasMoreMessages &&
+      selectedFriend
+    ) {
+      console.log("hey there")
+      setMessageOffset((prevOffset) => {
+        const newOffset = prevOffset + MESSAGES_PAGE_SIZE;
+        return newOffset;
+      });
     }
   };
+
+  useEffect(() => {
+    if (selectedFriend && messageOffset > 0) {
+      loadMessages(selectedFriend.email, messageOffset);
+    }
+  }, [messageOffset, selectedFriend]);
 
   const handleSendMessage = async (customMessage?: Partial<Message>) => {
     const content = newMessage.trim();
@@ -152,7 +163,6 @@ const Chat: React.FC = () => {
       filename: customMessage?.filename,
     };
 
-    // Don't send empty non-file messages
     if (!baseMsg.content && !baseMsg.is_file) return;
 
     try {
@@ -163,7 +173,6 @@ const Chat: React.FC = () => {
     }
   };
 
-  // Effects
   useEffect(() => {
     loadFriends(friendPage, friendSearch);
   }, [friendPage, friendSearch]);
@@ -179,10 +188,26 @@ const Chat: React.FC = () => {
             const container = messagesContainerRef.current;
             container.scrollTop = container.scrollHeight;
           }
-        }, 0); // Wait for DOM to render
+        }, 0);
       });
     }
   }, [selectedFriend]);
+
+  // ✅ Save scroll height before loading old messages
+  useEffect(() => {
+    if (messagesContainerRef.current && messageOffset > 0) {
+      prevScrollHeightRef.current = messagesContainerRef.current.scrollHeight;
+    }
+  }, [messageOffset]);
+
+  // ✅ Adjust scroll to maintain position after older messages are prepended
+  useEffect(() => {
+    if (messagesContainerRef.current && messageOffset > 0) {
+      const newScrollHeight = messagesContainerRef.current.scrollHeight;
+      const scrollDiff = newScrollHeight - prevScrollHeightRef.current;
+      messagesContainerRef.current.scrollTop += scrollDiff;
+    }
+  }, [messages]);
 
   useEffect(() => {
     if (messageOffset === 0 && messagesContainerRef.current) {
@@ -196,7 +221,6 @@ const Chat: React.FC = () => {
 
     const joinRoom = () => {
       socket.emit("join", { email: currentUser.email });
-      console.log("Joining socket room for:", currentUser.email);
     };
 
     if (socket.connected) joinRoom();
@@ -231,7 +255,6 @@ const Chat: React.FC = () => {
 
   return (
     <div className="d-flex vh-100 overflow-hidden font-monospace bg-light">
-      {/* Sidebar (friends list) */}
       {(!isMobile || !selectedFriend) && (
         <div
           className="border-end bg-white p-2"
@@ -249,10 +272,8 @@ const Chat: React.FC = () => {
         </div>
       )}
 
-      {/* Chat panel */}
       {(!isMobile || selectedFriend) && (
         <div className="d-flex flex-column flex-grow-1 bg-light">
-          {/* Mobile back button */}
           {isMobile && selectedFriend && (
             <div className="d-flex align-items-center p-2 bg-white border-bottom">
               <button
@@ -274,6 +295,7 @@ const Chat: React.FC = () => {
               messages={messages}
               loadingMessages={loadingMessages}
               onMessagesScroll={onMessagesScroll}
+              messagesContainerRef={messagesContainerRef}
             />
           </div>
 
