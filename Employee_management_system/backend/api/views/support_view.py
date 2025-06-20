@@ -36,6 +36,7 @@ def submit_resignation(request):
 
 
 
+#just for understanding what all is needed in notification no real purpose for this api
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
