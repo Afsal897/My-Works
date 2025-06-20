@@ -5,8 +5,9 @@ from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.db import transaction
 from django.utils.timezone import now
-from api.models import EmployeeProfile
+from api.models import EmployeeProfile, Payroll
 from api.serializers import TimesheetSerializer
+from decimal import Decimal
 
 
 @api_view(["POST"])
@@ -47,3 +48,41 @@ def submit_timesheet(request):
         serializer.save()
 
     return Response({"message": f"{len(created_entries)} timesheet entries submitted successfully."}, status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+@transaction.atomic
+def add_payroll(request):
+    data = request.data
+    try:
+        employee = EmployeeProfile.objects.get(id=data.get("employee_id"))
+    except EmployeeProfile.DoesNotExist:
+        return Response({"error": "Employee not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        basic_salary = Decimal(data["basic_salary"])
+        allowances = Decimal(data["allowances"])
+        deductions = Decimal(data["deductions"])
+    except KeyError as e:
+        return Response({"error": f"Missing field: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception:
+        return Response({"error": "Invalid data format."}, status=status.HTTP_400_BAD_REQUEST)
+
+    net_pay = basic_salary + allowances - deductions
+
+    payroll = Payroll.objects.create(
+        employee=employee,
+        basic_salary=basic_salary,
+        allowances=allowances,
+        deductions=deductions,
+        net_pay=net_pay,
+        processed_by=request.user
+    )
+
+    return Response({
+        "message": "Payroll added successfully.",
+        "payroll_id": payroll.id,
+        "net_pay": float(net_pay)
+    }, status=status.HTTP_201_CREATED)

@@ -4,7 +4,8 @@ from api.models import Resignation, SupportRequest, Notification
 class ResignationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Resignation
-        fields = '__all__'
+        fields = ['start_date', 'end_date', 'reason']
+        read_only_fields = ['start_date', 'end_date']
 
 class SupportRequestSerializer(serializers.ModelSerializer):
     class Meta:
