@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from api.models import User, Role, UserRole
-from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
@@ -75,3 +75,13 @@ class UserRoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserRole
         fields = '__all__'
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        if data['new_password'] != data['confirm_password']:
+            raise serializers.ValidationError({"confirm_password": "New passwords do not match."})
+        return data

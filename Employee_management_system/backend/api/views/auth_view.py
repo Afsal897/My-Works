@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
-from api.serializers import UserSerializer, LoginSerializer
+from api.serializers import UserSerializer, LoginSerializer, ChangePasswordSerializer
 from api.models import Role, UserRole
 
 User = get_user_model()
@@ -33,6 +33,27 @@ def register_admin(request):
         UserRole.objects.create(user=user, role=admin_role)
 
         return Response({'message': 'Admin user registered successfully.'}, status=status.HTTP_201_CREATED)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["PUT"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    user = request.user
+    serializer = ChangePasswordSerializer(data=request.data)
+
+    if serializer.is_valid():
+        old_password = serializer.validated_data["old_password"]
+        new_password = serializer.validated_data["new_password"]
+
+        if not user.check_password(old_password):
+            return Response({"old_password": "Incorrect old password."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+        return Response({"message": "Password changed successfully."}, status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
