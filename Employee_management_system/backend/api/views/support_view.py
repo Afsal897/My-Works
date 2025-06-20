@@ -4,8 +4,8 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.db import transaction
-from api.models import EmployeeProfile, Resignation
-from api.serializers import ResignationSerializer
+from api.models import EmployeeProfile, Resignation, User
+from api.serializers import ResignationSerializer, NotificationSerializer
 from django.utils.timezone import now
 from dateutil.relativedelta import relativedelta
 
@@ -34,3 +34,29 @@ def submit_resignation(request):
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+@transaction.atomic
+def create_notification(request):
+    data = request.data
+
+    try:
+        recipient = User.objects.get(id=data.get("recipient_id"))
+    except User.DoesNotExist:
+        return Response({"error": "Recipient not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = NotificationSerializer(data={
+        "title": data.get("title"),
+        "message": data.get("message"),
+        "recipient": recipient.id,
+        "event_type": data.get("event_type"),
+        "related_entity_id": data.get("related_entity_id")
+    })
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "Notification created successfully."}, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

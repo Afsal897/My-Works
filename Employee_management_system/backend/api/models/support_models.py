@@ -17,24 +17,3 @@ class Resignation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
-
-class SupportRequest(models.Model):
-    employee = models.ForeignKey(EmployeeProfile, on_delete=models.CASCADE)
-    subject = models.CharField(max_length=100)
-    message = models.TextField()
-    
-    STATUS_CHOICES = [
-        ('open', 'Open'),
-        ('in_progress', 'In Progress'),
-        ('resolved', 'Resolved'),
-        ('closed', 'Closed')
-    ]
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open')
-    
-    submitted_on = models.DateTimeField()
-    resolved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    resolved_on = models.DateTimeField(null=True, blank=True)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    deleted_at = models.DateTimeField(null=True, blank=True)

@@ -7,12 +7,13 @@ class ResignationSerializer(serializers.ModelSerializer):
         fields = ['start_date', 'end_date', 'reason']
         read_only_fields = ['start_date', 'end_date']
 
-class SupportRequestSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SupportRequest
-        fields = '__all__'
+# class SupportRequestSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = SupportRequest
+#         fields = '__all__'
 
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = '__all__'
+        fields = ['id', 'title', 'message', 'recipient', 'event_type', 'related_entity_id', 'is_read']
+        read_only_fields = ['is_read']
