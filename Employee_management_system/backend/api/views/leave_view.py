@@ -8,6 +8,8 @@ from api.models import EmployeeProfile
 from api.serializers import LeaveSerializer
 from datetime import datetime
 
+#leave balace is set in auth_view inside employee registration
+
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])

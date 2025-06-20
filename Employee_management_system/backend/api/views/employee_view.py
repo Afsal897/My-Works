@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from api.serializers import DepartmentSerializer, EmployeeProfileSerializer
-from api.models import Department
+from api.models import Department, LeaveBalance
 from api.utils import is_admin
 
 
@@ -33,8 +33,20 @@ def create_employee_profile(request):
     if not is_admin(request.user):
         return Response({'error': 'Only Admins are allowed to perform this action.'}, status=status.HTTP_403_FORBIDDEN)
     
-    serializer=EmployeeProfileSerializer(data=request.data)
+    serializer = EmployeeProfileSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save()
+        employee_profile = serializer.save()  # Save and get the instance
+
+        #Create default leave balances
+        default_balance = 6.0
+        leave_types = ["Casual", "Sick"]
+        for leave_type in leave_types:
+            LeaveBalance.objects.create(
+                employee=employee_profile,
+                leave_type=leave_type,
+                balance=default_balance
+            )
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

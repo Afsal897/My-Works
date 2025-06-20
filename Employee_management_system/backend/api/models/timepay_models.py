@@ -18,7 +18,7 @@ class Timesheet(models.Model):
 
 class Payroll(models.Model):
     employee = models.ForeignKey(EmployeeProfile, on_delete=models.CASCADE)
-    month = models.CharField(max_length=7)  # Format: YYYY-MM
+    month = models.CharField(max_length=7)  # Format YYYY-MM
     basic_salary = models.DecimalField(max_digits=10, decimal_places=2)
     allowances = models.DecimalField(max_digits=10, decimal_places=2)
     deductions = models.DecimalField(max_digits=10, decimal_places=2)
