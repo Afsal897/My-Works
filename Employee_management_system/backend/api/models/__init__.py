@@ -5,7 +5,7 @@ from .performance_models import PerformanceRating, TeammateFeedback
 from .timepay_models import Timesheet, Payroll
 from .leave_model import Leave, LeaveBalance
 from .skill_models import Skill, EmployeeSkill
-from .support_models import Resignation, SupportRequest
+from .support_models import Resignation
 from .notification_models import Notification
 
 __all__ = [
