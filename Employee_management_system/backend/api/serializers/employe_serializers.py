@@ -29,3 +29,5 @@ class DeleteDepartmentSerializer(serializers.Serializer):
         department.deleted_at = now()
         department.save()
         return department
+    
+

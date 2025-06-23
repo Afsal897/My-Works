@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from api.serializers import DepartmentSerializer, EmployeeProfileSerializer, DeleteDepartmentSerializer
-from api.models import Department, LeaveBalance
+from api.models import Department, LeaveBalance, EmployeeProfile
 from api.utils import is_admin
 
 
@@ -25,6 +25,7 @@ def create_department(request):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
@@ -83,4 +84,24 @@ def delete_department(request):
     if serializer.is_valid():
         serializer.save()
         return Response({"message": "Department soft-deleted successfully."}, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["PATCH"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def edit_employee_profile(request, employee_id):
+    if not is_admin(request.user):
+        return Response({"error": "Only Admins can edit employee profiles."}, status=status.HTTP_403_FORBIDDEN)
+
+    try:
+        profile = EmployeeProfile.objects.get(id=employee_id, deleted_at__isnull=True)
+    except EmployeeProfile.DoesNotExist:
+        return Response({"error": "Employee profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = EmployeeProfileSerializer(profile, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "Employee profile updated successfully."}, status=status.HTTP_200_OK)
+
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
