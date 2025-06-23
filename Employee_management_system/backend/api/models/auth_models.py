@@ -6,6 +6,7 @@ class User(AbstractUser):
     email = models.EmailField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email']  # Required when creating superusers
@@ -16,12 +17,9 @@ class User(AbstractUser):
 class Role(models.Model):
     name = models.CharField(max_length=50, unique=True)
     description = models.TextField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    deleted_at = models.DateTimeField(null=True, blank=True)
 
 class UserRole(models.Model):
-    user = models.ForeignKey('User', on_delete=models.CASCADE)
+    user = models.OneToOneField('User', on_delete=models.CASCADE)#user only appear once
     role = models.ForeignKey('Role', on_delete=models.CASCADE)
     assigned_at = models.DateTimeField(default=datetime.now)
 

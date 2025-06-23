@@ -6,8 +6,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
-from api.serializers import UserSerializer, LoginSerializer, ChangePasswordSerializer
+from api.serializers import UserSerializer, LoginSerializer, ChangePasswordSerializer, ChangeUserRoleSerializer, DeleteUserSerializer
 from api.models import Role, UserRole
+from api.utils import is_admin
 
 User = get_user_model()
 
@@ -19,6 +20,8 @@ def register_admin(request):
         admin_exists = UserRole.objects.filter(role=admin_role).exists()
     except Role.DoesNotExist:
         admin_role = Role.objects.create(name='Admin')
+        admin_role = Role.objects.create(name='Manager')
+        admin_role = Role.objects.create(name='Employee')
         admin_exists = False
 
     if admin_exists:
@@ -37,27 +40,6 @@ def register_admin(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(["PUT"])
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
-def change_password(request):
-    user = request.user
-    serializer = ChangePasswordSerializer(data=request.data)
-
-    if serializer.is_valid():
-        old_password = serializer.validated_data["old_password"]
-        new_password = serializer.validated_data["new_password"]
-
-        if not user.check_password(old_password):
-            return Response({"old_password": "Incorrect old password."}, status=status.HTTP_400_BAD_REQUEST)
-
-        user.set_password(new_password)
-        user.save()
-        return Response({"message": "Password changed successfully."}, status=status.HTTP_200_OK)
-
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -65,14 +47,9 @@ def change_password(request):
 def register_employee_or_manager(request):
     #Check if logged-in user is Admin
     user = request.user
-    try:
-        user_role = UserRole.objects.get(user=user)
-    except UserRole.DoesNotExist:
-        return Response({"error": "User has no role assigned."}, status=status.HTTP_403_FORBIDDEN)
-
-    if user_role.role.name != "Admin":
-        return Response({"error": "Only admins can register employees or managers."}, status=status.HTTP_403_FORBIDDEN)
-
+    if not is_admin(user):
+        return Response({'error': 'Only Admins are allowed to perform this action.'}, status=status.HTTP_403_FORBIDDEN)
+    
     #Extract and validate role
     role_name = request.data.get("role", "Employee").capitalize()
     if role_name not in ["Employee", "Manager"]:
@@ -125,5 +102,55 @@ def login_user(request):
             'role': role_name
         }, status=status.HTTP_200_OK)
 
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["PUT"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    user = request.user
+    serializer = ChangePasswordSerializer(data=request.data)
+
+    if serializer.is_valid():
+        old_password = serializer.validated_data["old_password"]
+        new_password = serializer.validated_data["new_password"]
+
+        if not user.check_password(old_password):
+            return Response({"old_password": "Incorrect old password."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+        return Response({"message": "Password changed successfully."}, status=status.HTTP_200_OK)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["PUT"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def change_userrole(request):
+    user = request.user
+    if not is_admin(user):
+        return Response({'error': 'Only Admins are allowed to perform this action.'}, status=status.HTTP_403_FORBIDDEN)
+    
+    serializer = ChangeUserRoleSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "Role changed successfully"}, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["DELETE"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_user(request):
+    if not is_admin(request.user):
+        return Response({"error":"only admins can delete accounts"}, status=status.HTTP_403_FORBIDDEN)
+    
+    serializer = DeleteUserSerializer(data = request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "User deleted (soft delete)."}, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
