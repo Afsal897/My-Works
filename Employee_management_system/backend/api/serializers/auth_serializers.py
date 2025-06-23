@@ -63,6 +63,7 @@ class LoginSerializer(serializers.Serializer):
 
         if not user:
             raise serializers.ValidationError("Invalid login credentials.")
+        
         if not user.is_active:
             raise serializers.ValidationError("User is disabled.")
 
@@ -101,14 +102,19 @@ class ChangeUserRoleSerializer(serializers.Serializer):
         user_id=data["user_id"]
         role_id=data["role_id"]
 
-        if not User.objects.filter(user_id).exists():
+        if not User.objects.filter(id=user_id).exists():
             raise serializers.ValidationError("User does not exist")
         
-        if not Role.objects.filter(role_id).exists():
+        if not Role.objects.filter(id=role_id).exists():
             raise serializers.ValidationError("Role does not exist")
         
-        if (role_id==1):#id 1 is admin
+        role = Role.objects.get(id=role_id)
+        if role.name.lower() == "admin":
             raise serializers.ValidationError("Cannot assign admin role")
+        
+        user = User.objects.get(id=user_id)
+        if is_admin(user):
+            raise serializers.ValidationError("Cannot change role of an Admin user.")
 
         return data
     
@@ -127,6 +133,7 @@ class ChangeUserRoleSerializer(serializers.Serializer):
 
         return user_role
     
+
 class DeleteUserSerializer(serializers.Serializer):
     user_id = serializers.IntegerField()
 

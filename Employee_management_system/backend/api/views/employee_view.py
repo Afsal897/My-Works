@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from api.serializers import DepartmentSerializer, EmployeeProfileSerializer
+from api.serializers import DepartmentSerializer, EmployeeProfileSerializer, DeleteDepartmentSerializer
 from api.models import Department, LeaveBalance
 from api.utils import is_admin
 
@@ -49,4 +49,38 @@ def create_employee_profile(request):
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['PATCH'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def edit_department(request, department_id):
+    user = request.user
+    if not is_admin(user):
+        return Response({"error":"user does not have permission"}, status=status.HTTP_403_FORBIDDEN)
+ 
+    try:
+        department = Department.objects.get(id=department_id, deleted_at__isnull=True)
+    except Department.DoesNotExist:
+        return Response({"error":"Department does not exist"}, status=status.HTTP_404_NOT_FOUND)
+    
+    serializer = DepartmentSerializer(department, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "Department updated successfully."},status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["DELETE"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_department(request):
+    if not is_admin(request.user):
+        return Response({"error": "Only Admins can delete departments."}, status=status.HTTP_403_FORBIDDEN)
+
+    serializer = DeleteDepartmentSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "Department soft-deleted successfully."}, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

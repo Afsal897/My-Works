@@ -20,8 +20,8 @@ def register_admin(request):
         admin_exists = UserRole.objects.filter(role=admin_role).exists()
     except Role.DoesNotExist:
         admin_role = Role.objects.create(name='Admin')
-        admin_role = Role.objects.create(name='Manager')
-        admin_role = Role.objects.create(name='Employee')
+        Role.objects.get_or_create(name='Manager')
+        Role.objects.get_or_create(name='Employee')
         admin_exists = False
 
     if admin_exists:
@@ -81,6 +81,7 @@ def register_employee_or_manager(request):
 
 @api_view(['POST'])
 def login_user(request):
+    
     serializer = LoginSerializer(data=request.data)
     if serializer.is_valid():
         user = serializer.validated_data['user']
