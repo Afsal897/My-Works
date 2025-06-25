@@ -6,8 +6,11 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.db import transaction
 from django.utils.timezone import now
 from api.models import EmployeeProfile
-from api.serializers import TimesheetSerializer, ApproveRejectTimesheetSerializer
-from decimal import Decimal
+from api.serializers import (
+    TimesheetSerializer, 
+    ApproveRejectTimesheetSerializer, 
+    EditTimesheetSerializer
+    )
 
 
 @api_view(["POST"])
@@ -61,4 +64,15 @@ def approve_or_reject_timesheet(request):
         serializer.save()
         return Response({'message': 'Timesheet updated successfully.'}, status=status.HTTP_200_OK)
 
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["PUT"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def edit_timesheet(request):
+    serializer = EditTimesheetSerializer(data=request.data, context={'user': request.user})
+    if serializer.is_valid():
+        updated = serializer.save()
+        return Response(EditTimesheetSerializer(updated).data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
