@@ -2,6 +2,7 @@ from django.db import models
 from .auth_models import User
 from .employee_models import EmployeeProfile
 
+
 class Resignation(models.Model):
     employee = models.ForeignKey(EmployeeProfile, on_delete=models.CASCADE)
     start_date = models.DateField()

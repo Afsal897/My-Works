@@ -2,11 +2,13 @@ from django.db import models
 from .auth_models import User
 from .employee_models import EmployeeProfile
 
+
 class Skill(models.Model):
     name = models.CharField(max_length=50, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
+
 
 class EmployeeSkill(models.Model):
     employee = models.ForeignKey(EmployeeProfile, on_delete=models.CASCADE)

@@ -4,7 +4,6 @@ from django.contrib.auth import get_user_model
 from django.utils.timezone import now
 from api.utils import is_admin
 
-
 User = get_user_model()
 
 
@@ -154,4 +153,18 @@ class DeleteUserSerializer(serializers.Serializer):
         user.save()
         return user
     
+
+class UserWithRoleSerializer(serializers.ModelSerializer):
+    role = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'is_active', 'created_at', 'updated_at', 'role']
+
+    def get_role(self, obj):
+        try:
+            user_role = UserRole.objects.get(user=obj)
+            return RoleSerializer(user_role.role).data
+        except UserRole.DoesNotExist:
+            return None
 

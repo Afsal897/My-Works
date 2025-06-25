@@ -4,6 +4,7 @@ from .auth_models import User
 from .employee_models import EmployeeProfile
 from .skill_models import Skill
 
+
 class Project(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True)
@@ -24,6 +25,7 @@ class Project(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
 
+
 class ProjectAssignment(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     employee = models.ForeignKey(EmployeeProfile, on_delete=models.CASCADE)
@@ -43,6 +45,7 @@ class ProjectAssignment(models.Model):
 
     class Meta:
         unique_together = ('project', 'employee')
+
 
 class ProjectTechnology(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)

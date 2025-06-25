@@ -3,10 +3,12 @@ from api.models import Project, ProjectAssignment, ProjectTechnology
 from django.utils.timezone import now
 from api.utils import is_admin
 
+
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = '__all__'
+
 
 class EditProjectSerializer(serializers.ModelSerializer):
     project_id = serializers.IntegerField(write_only=True)
@@ -37,6 +39,7 @@ class EditProjectSerializer(serializers.ModelSerializer):
         project.save()
         return project
 
+
 class DeleteProjectSerializer(serializers.Serializer):
     project_id = serializers.IntegerField()
 
@@ -59,10 +62,12 @@ class DeleteProjectSerializer(serializers.Serializer):
         self.instance.save()
         return self.instance
 
+
 class ProjectAssignmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectAssignment
         fields = '__all__'
+
 
 class RemoveProjectAssignmentSerializer(serializers.Serializer):
     project_id = serializers.IntegerField()
@@ -94,10 +99,12 @@ class RemoveProjectAssignmentSerializer(serializers.Serializer):
         self.instance.save()
         return self.instance
 
+
 class ProjectTechnologySerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectTechnology
         fields = '__all__'
+
 
 class RemoveProjectTechnologySerializer(serializers.Serializer):
     project_id = serializers.IntegerField()

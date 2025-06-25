@@ -3,6 +3,7 @@ from api.models import Timesheet
 from datetime import date
 from api.utils import is_admin
 
+
 class TimesheetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Timesheet
@@ -24,6 +25,7 @@ class TimesheetSerializer(serializers.ModelSerializer):
         ).exists():
             raise serializers.ValidationError("A timesheet entry for this date already exists.")
         return data
+
 
 class ApproveRejectTimesheetSerializer(serializers.Serializer):
     timesheet_id = serializers.IntegerField()

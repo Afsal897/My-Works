@@ -3,6 +3,7 @@ from .auth_models import User
 from .employee_models import EmployeeProfile
 from django.utils.timezone import now
 
+
 class Leave(models.Model):
     employee = models.ForeignKey(EmployeeProfile, on_delete=models.CASCADE)
     
@@ -29,6 +30,7 @@ class Leave(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
+
 
 class LeaveBalance(models.Model):
     employee = models.ForeignKey(EmployeeProfile, on_delete=models.CASCADE)

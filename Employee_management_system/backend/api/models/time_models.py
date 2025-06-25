@@ -3,6 +3,7 @@ from .auth_models import User
 from .employee_models import EmployeeProfile
 from .project_models import Project
 
+
 class Timesheet(models.Model):
     employee = models.ForeignKey(EmployeeProfile, on_delete=models.CASCADE)
     project = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True, blank=True)

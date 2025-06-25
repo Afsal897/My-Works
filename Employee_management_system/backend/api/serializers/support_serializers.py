@@ -9,6 +9,7 @@ class ResignationSerializer(serializers.ModelSerializer):
         fields = ['start_date', 'end_date', 'reason']
         read_only_fields = ['start_date', 'end_date']
 
+
 class WithdrawResignationSerializer(serializers.Serializer):
     resignation_id = serializers.IntegerField()
 

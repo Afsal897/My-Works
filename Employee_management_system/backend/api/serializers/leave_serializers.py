@@ -2,6 +2,7 @@ from rest_framework import serializers
 from api.models import Leave, LeaveBalance
 from django.utils.timezone import now
 
+
 class LeaveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Leave

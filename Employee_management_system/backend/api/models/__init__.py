@@ -1,5 +1,5 @@
 from .auth_models import User, Role, UserRole
-from .employee_models import EmployeeProfile, Department
+from .employee_models import EmployeeProfile, Department, Designation
 from .project_models import Project, ProjectAssignment, ProjectTechnology
 from .performance_models import PerformanceRating, TeammateFeedback
 from .time_models import Timesheet

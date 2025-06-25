@@ -48,8 +48,7 @@ def create_employee_profile(request):
                 balance=default_balance
             )
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
+        return Response(EmployeeProfileSerializer(employee_profile).data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

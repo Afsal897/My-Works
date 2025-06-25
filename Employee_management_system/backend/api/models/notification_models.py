@@ -1,6 +1,7 @@
 from django.db import models
 from .auth_models import User
 
+
 class Notification(models.Model):
     title = models.CharField(max_length=100)
     message = models.TextField()

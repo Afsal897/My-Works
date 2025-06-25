@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from api.models import EmployeeProfile, Department
+from api.models import EmployeeProfile, Department, Designation
 from django.utils.timezone import now
+
 
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -8,7 +9,14 @@ class DepartmentSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description', 'head']
 
 
+class DesignationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Designation
+        fields = ['id', 'title', 'description']
+
+
 class EmployeeProfileSerializer(serializers.ModelSerializer):
+    designation_title = serializers.CharField(source='designation.title', read_only=True)
     class Meta:
         model = EmployeeProfile
         fields = '__all__'

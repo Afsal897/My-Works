@@ -3,6 +3,7 @@ from .auth_models import User
 from .employee_models import EmployeeProfile
 from .project_models import Project
 
+
 class PerformanceRating(models.Model):
     employee = models.ForeignKey(EmployeeProfile, on_delete=models.CASCADE, related_name='ratings')
     rated_by = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -12,6 +13,7 @@ class PerformanceRating(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
+
 
 class TeammateFeedback(models.Model):
     from_employee = models.ForeignKey(EmployeeProfile, on_delete=models.CASCADE, related_name='feedback_given')

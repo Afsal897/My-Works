@@ -3,15 +3,18 @@ from api.models import PerformanceRating, TeammateFeedback
 from django.utils.timezone import now
 from api.utils import is_admin
 
+
 class PerformanceRatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = PerformanceRating
         fields = ['employee', 'rating', 'review_comment', 'review_date']
 
+
 class TeammateFeedbackSerializer(serializers.ModelSerializer):
     class Meta:
         model = TeammateFeedback
         fields = ['to_employee', 'project', 'feedback_text', 'rating', 'status']
+
 
 class EditPerformanceRatingSerializer(serializers.ModelSerializer):
     rating_id = serializers.IntegerField(write_only=True)
@@ -40,6 +43,7 @@ class EditPerformanceRatingSerializer(serializers.ModelSerializer):
         rating.save()
         return rating
 
+
 class DeletePerformanceRatingSerializer(serializers.Serializer):
     rating_id = serializers.IntegerField()
 
@@ -60,6 +64,7 @@ class DeletePerformanceRatingSerializer(serializers.Serializer):
         self.instance.deleted_at = now()
         self.instance.save()
         return self.instance
+
 
 class EditTeammateFeedbackSerializer(serializers.ModelSerializer):
     feedback_id = serializers.IntegerField(write_only=True)
@@ -91,6 +96,7 @@ class EditTeammateFeedbackSerializer(serializers.ModelSerializer):
         feedback.submitted_on = self.validated_data.get('submitted_on', feedback.submitted_on)
         feedback.save()
         return feedback
+
 
 class DeleteTeammateFeedbackSerializer(serializers.Serializer):
     feedback_id = serializers.IntegerField()

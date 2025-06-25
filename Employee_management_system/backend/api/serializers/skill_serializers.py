@@ -2,10 +2,12 @@ from rest_framework import serializers
 from api.models import Skill, EmployeeSkill
 from django.utils.timezone import now
 
+
 class SkillSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skill
         fields = '__all__'
+
 
 class EditSkillSerializer(serializers.ModelSerializer):
     skill_id = serializers.IntegerField(write_only=True)
@@ -32,6 +34,7 @@ class EditSkillSerializer(serializers.ModelSerializer):
         self.instance.save()
         return self.instance
 
+
 class DeleteSkillSerializer(serializers.Serializer):
     skill_id = serializers.IntegerField()
 
@@ -48,10 +51,12 @@ class DeleteSkillSerializer(serializers.Serializer):
         self.instance.save()
         return self.instance
 
+
 class EmployeeSkillSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmployeeSkill
         fields = '__all__'
+
 
 class RemoveEmployeeSkillSerializer(serializers.Serializer):
     employee_id = serializers.IntegerField()

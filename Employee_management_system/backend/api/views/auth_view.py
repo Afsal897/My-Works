@@ -6,7 +6,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
-from api.serializers import UserSerializer, LoginSerializer, ChangePasswordSerializer, ChangeUserRoleSerializer, DeleteUserSerializer
+from api.serializers import (
+    UserSerializer, 
+    LoginSerializer, 
+    ChangePasswordSerializer, 
+    ChangeUserRoleSerializer, 
+    DeleteUserSerializer,
+    UserWithRoleSerializer
+)
 from api.models import Role, UserRole
 from api.utils import is_admin
 
@@ -155,3 +162,11 @@ def delete_user(request):
         return Response({"message": "User deleted (soft delete)."}, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def list_users_with_roles(request):
+    users = User.objects.filter(deleted_at__isnull=True)
+    serializer = UserWithRoleSerializer(users, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
