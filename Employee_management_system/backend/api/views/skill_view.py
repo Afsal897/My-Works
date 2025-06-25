@@ -34,6 +34,7 @@ def create_skill(request):
 
     return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
+
 @api_view(["PUT"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -49,6 +50,7 @@ def edit_skill(request):
         return Response(EditSkillSerializer(updated_skill).data, status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(["DELETE"])
 @authentication_classes([JWTAuthentication])
@@ -90,6 +92,7 @@ def add_employee_skill(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(["DELETE"])
 @authentication_classes([JWTAuthentication])

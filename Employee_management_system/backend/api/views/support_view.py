@@ -5,7 +5,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.db import transaction
 from api.models import EmployeeProfile, Resignation, User
-from api.serializers import ResignationSerializer, NotificationSerializer
+from api.serializers import (
+    ResignationSerializer, 
+    NotificationSerializer,
+    WithdrawResignationSerializer
+    )
 from django.utils.timezone import now
 from dateutil.relativedelta import relativedelta
 
@@ -34,6 +38,18 @@ def submit_resignation(request):
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(["DELETE"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def withdraw_resignation(request):
+    user = request.user
+    serializer = WithdrawResignationSerializer(data=request.data, context={'user': user})
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response({'message': 'Resignation withdrawn successfully.'}, status=status.HTTP_204_NO_CONTENT)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 #just for understanding what all is needed in notification no real purpose for this api
