@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.db import transaction
 from django.utils.timezone import now
-from api.models import EmployeeProfile, Payroll
+from api.models import EmployeeProfile
 from api.serializers import TimesheetSerializer, ApproveRejectTimesheetSerializer
 from decimal import Decimal
 
