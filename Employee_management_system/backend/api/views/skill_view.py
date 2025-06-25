@@ -5,7 +5,13 @@ from rest_framework.response import Response
 from rest_framework import status
 from api.utils import is_admin, is_manager
 from api.models import Skill, EmployeeSkill
-from api.serializers import SkillSerializer, EmployeeSkillSerializer
+from api.serializers import (
+    SkillSerializer, 
+    EmployeeSkillSerializer,
+    EditSkillSerializer,
+    DeleteSkillSerializer,
+    RemoveEmployeeSkillSerializer
+    )
 
 
 @api_view(["POST"])
@@ -27,6 +33,38 @@ def create_skill(request):
     print(serializer.data)
 
     return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(["PUT"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def edit_skill(request):
+    user = request.user
+
+    if not is_admin(user):
+        return Response({'error': 'Only admins can edit skills.'}, status=status.HTTP_403_FORBIDDEN)
+
+    serializer = EditSkillSerializer(data=request.data, context={'user': user})
+    if serializer.is_valid():
+        updated_skill = serializer.save()
+        return Response(EditSkillSerializer(updated_skill).data, status=status.HTTP_200_OK)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(["DELETE"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_skill(request):
+    user = request.user
+
+    if not is_admin(user):
+        return Response({'error': 'Only admins can delete skills.'}, status=status.HTTP_403_FORBIDDEN)
+
+    serializer = DeleteSkillSerializer(data=request.data, context={'user': user})
+    if serializer.is_valid():
+        serializer.save()
+        return Response({'message': 'Skill deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["POST"])
@@ -50,5 +88,16 @@ def add_employee_skill(request):
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(["DELETE"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def remove_employee_skill(request):
+    serializer = RemoveEmployeeSkillSerializer(data=request.data, context={'user': request.user})
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "Skill removed from employee."}, status=status.HTTP_204_NO_CONTENT)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

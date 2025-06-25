@@ -3,9 +3,18 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from api.serializers import ProjectSerializer, ProjectAssignmentSerializer, ProjectTechnologySerializer
+from api.serializers import (
+    ProjectSerializer, 
+    EditProjectSerializer,
+    DeleteProjectSerializer,
+    ProjectAssignmentSerializer,
+    RemoveProjectAssignmentSerializer,
+    ProjectTechnologySerializer,
+    RemoveProjectTechnologySerializer,
+    )
 from api.utils import is_admin, is_manager
 from api.models import EmployeeProfile, ProjectAssignment, ProjectTechnology
+
 
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
@@ -39,6 +48,30 @@ def create_project(request):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["PUT"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def edit_project(request):
+    user = request.user
+    serializer = EditProjectSerializer(data=request.data, context={'user': user})
+    if serializer.is_valid():
+        updated_project = serializer.save()
+        return Response(EditProjectSerializer(updated_project).data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["DELETE"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_project(request):
+    user = request.user
+    serializer = DeleteProjectSerializer(data=request.data, context={'user': user})
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "Project deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -76,6 +109,18 @@ def assign_employee_to_project(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(["DELETE"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def remove_employee_from_project(request):
+    user = request.user
+    serializer = RemoveProjectAssignmentSerializer(data=request.data, context={'user': user})
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "Employee removed from project."}, status=status.HTTP_204_NO_CONTENT)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -109,5 +154,26 @@ def assign_project_technology(request):
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["DELETE"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def remove_project_technology(request):
+    user = request.user
+
+    # Only Admins and Managers can remove technologies
+    if not (is_admin(user) or is_manager(user)):
+        return Response(
+            {'error': 'Only Admins and Managers can remove technologies from projects.'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    serializer = RemoveProjectTechnologySerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({'message': 'Technology removed from project.'}, status=status.HTTP_204_NO_CONTENT)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
