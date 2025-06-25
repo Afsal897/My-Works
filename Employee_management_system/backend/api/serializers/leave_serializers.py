@@ -8,6 +8,25 @@ class LeaveSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class DeleteLeaveRequestSerializer(serializers.Serializer):
+    leave_id = serializers.IntegerField()
+
+    def validate_leave_id(self, value):
+        user = self.context['user']
+        try:
+            leave = Leave.objects.get(id=value, employee__user=user, status='pending', deleted_at__isnull=True)
+        except Leave.DoesNotExist:
+            raise serializers.ValidationError("Leave request not found or cannot be deleted.")
+        return value
+
+    def save(self, **kwargs):
+        leave_id = self.validated_data['leave_id']
+        leave = Leave.objects.get(id=leave_id)
+        leave.deleted_at = now()
+        leave.save()
+        return leave
+
+
 class LeaveBalanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = LeaveBalance

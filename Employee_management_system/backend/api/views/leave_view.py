@@ -4,8 +4,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from api.models import EmployeeProfile
-from api.serializers import LeaveSerializer, LeaveActionSerializer
+from api.models import EmployeeProfile, Leave
+from api.serializers import LeaveSerializer, LeaveActionSerializer, DeleteLeaveRequestSerializer
 from datetime import datetime
 from api.utils import is_admin, is_manager
 
@@ -32,6 +32,38 @@ def submit_leave_request(request):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["PUT", "PATCH"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def edit_leave_request(request, leave_id):
+    user = request.user
+
+    try:
+        leave = Leave.objects.get(id=leave_id, employee__user=user, status='pending', deleted_at__isnull=True)
+    except Leave.DoesNotExist:
+        return Response({'error': 'Leave request not found or cannot be edited.'}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = LeaveSerializer(leave, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["DELETE"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_leave_request(request):
+    user = request.user
+
+    serializer = DeleteLeaveRequestSerializer(data=request.data, context={'user': user})
+    if serializer.is_valid():
+        serializer.save()
+        return Response({'message': 'Leave request deleted.'}, status=status.HTTP_204_NO_CONTENT)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
