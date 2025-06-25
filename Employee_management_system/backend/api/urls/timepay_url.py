@@ -1,7 +1,7 @@
 from django.urls import path
-from api.views import timepay_view
+from backend.api.views import time_view
 
 urlpatterns=[
-    path('submit_timesheet/', timepay_view.submit_timesheet, name="submit_timesheet"),
-    path('payroll/',timepay_view.add_payroll, name='add payroll')
+    path('submit_timesheet/', time_view.submit_timesheet, name="submit_timesheet"),
+    path('payroll/',time_view.add_payroll, name='add payroll')
 ]

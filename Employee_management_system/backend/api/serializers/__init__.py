@@ -5,4 +5,4 @@ from .performance_serializers import *
 from .project_serializers import *
 from .skill_serializers import *
 from .support_serializers import *
-from .timepay_serializers import *
+from .time_serializers import *
