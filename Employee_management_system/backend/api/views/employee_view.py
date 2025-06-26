@@ -9,7 +9,7 @@ from api.serializers import (
     DeleteDepartmentSerializer,
     DesignationSerializer
 )
-from api.models import Department, LeaveBalance, EmployeeProfile, Designation
+from api.models import Department, EmployeeProfile, Designation
 from api.utils import is_admin
 
 
@@ -42,16 +42,6 @@ def create_employee_profile(request):
     serializer = EmployeeProfileSerializer(data=request.data)
     if serializer.is_valid():
         employee_profile = serializer.save()  # Save and get the instance
-
-        #Create default leave balances
-        default_balance = 6.0
-        leave_types = ["Casual", "Sick"]
-        for leave_type in leave_types:
-            LeaveBalance.objects.create(
-                employee=employee_profile,
-                leave_type=leave_type,
-                balance=default_balance
-            )
 
         return Response(EmployeeProfileSerializer(employee_profile).data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
