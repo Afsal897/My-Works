@@ -38,18 +38,20 @@ class EditSkillSerializer(serializers.ModelSerializer):
 class DeleteSkillSerializer(serializers.Serializer):
     skill_id = serializers.IntegerField()
 
-    def validate_skill_id(self, value):
+    def validate(self, data):
         try:
-            skill = Skill.objects.get(id=value, deleted_at__isnull=True)
+            skill = Skill.objects.get(id=data['skill_id'], deleted_at__isnull=True)
         except Skill.DoesNotExist:
             raise serializers.ValidationError("Skill not found or already deleted.")
+        
         self.instance = skill
-        return value
+        return data
 
     def save(self, **kwargs):
         self.instance.deleted_at = now()
         self.instance.save()
         return self.instance
+
 
 
 class EmployeeSkillSerializer(serializers.ModelSerializer):

@@ -64,7 +64,7 @@ def delete_skill(request):
     serializer = DeleteSkillSerializer(data=request.data, context={'user': user})
     if serializer.is_valid():
         serializer.save()
-        return Response({'message': 'Skill deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'Skill deleted successfully.'}, status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -98,13 +98,12 @@ def add_employee_skill(request):
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def remove_employee_skill(request):
-    serializer = RemoveEmployeeSkillSerializer(data=request.data, context={'user': request.user})
+    serializer = RemoveEmployeeSkillSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        return Response({"message": "Skill removed from employee."}, status=status.HTTP_204_NO_CONTENT)
-    
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message": "Employee skill deleted successfully."}, status=status.HTTP_200_OK)
 
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
