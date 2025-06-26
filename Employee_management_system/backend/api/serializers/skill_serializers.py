@@ -53,10 +53,17 @@ class DeleteSkillSerializer(serializers.Serializer):
 
 
 class EmployeeSkillSerializer(serializers.ModelSerializer):
+    skill_name = serializers.CharField(source='skill.name', read_only=True)
+    employee_name = serializers.CharField(source='employee.user.username', read_only=True)
+
     class Meta:
         model = EmployeeSkill
-        fields = '__all__'
-
+        fields = [
+            'id', 'employee', 'employee_name', 'skill', 'skill_name',
+            'proficiency_level', 'status', 'approved_by', 'approved_on',
+            'created_at', 'updated_at'
+        ]
+        
 
 class RemoveEmployeeSkillSerializer(serializers.Serializer):
     employee_id = serializers.IntegerField()

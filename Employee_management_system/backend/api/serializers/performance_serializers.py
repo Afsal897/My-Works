@@ -5,16 +5,34 @@ from api.utils import is_admin
 
 
 class PerformanceRatingSerializer(serializers.ModelSerializer):
+    employee_name = serializers.CharField(source='employee.user.username', read_only=True)
+    rated_by_name = serializers.CharField(source='rated_by.username', read_only=True)
+
     class Meta:
         model = PerformanceRating
-        fields = ['employee', 'rating', 'review_comment', 'review_date']
+        fields = [
+            'id', 'employee', 'employee_name',
+            'rated_by', 'rated_by_name',
+            'rating', 'review_comment', 'review_date',
+            'created_at', 'updated_at'
+        ]
 
 
 class TeammateFeedbackSerializer(serializers.ModelSerializer):
+    from_employee_name = serializers.CharField(source='from_employee.user.username', read_only=True)
+    to_employee_name = serializers.CharField(source='to_employee.user.username', read_only=True)
+    project_name = serializers.CharField(source='project.name', read_only=True)
+
     class Meta:
         model = TeammateFeedback
-        fields = ['to_employee', 'project', 'feedback_text', 'rating', 'status']
-
+        fields = [
+            'id', 'from_employee', 'from_employee_name',
+            'to_employee', 'to_employee_name',
+            'project', 'project_name',
+            'feedback_text', 'rating', 'status', 'submitted_on',
+            'created_at', 'updated_at'
+        ]
+        
 
 class EditPerformanceRatingSerializer(serializers.ModelSerializer):
     rating_id = serializers.IntegerField(write_only=True)

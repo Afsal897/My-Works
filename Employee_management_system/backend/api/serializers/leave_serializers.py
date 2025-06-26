@@ -4,9 +4,18 @@ from django.utils.timezone import now
 
 
 class LeaveSerializer(serializers.ModelSerializer):
+    employee_name = serializers.CharField(source='employee.user.username', read_only=True)
+    department_name = serializers.CharField(source='employee.department.name', read_only=True)
+    approved_by_name = serializers.CharField(source='approved_by.username', read_only=True)
+
     class Meta:
         model = Leave
-        fields = '__all__'
+        fields = [
+            'id', 'employee', 'employee_name', 'department_name',
+            'leave_type', 'start_date', 'end_date', 'reason',
+            'status', 'requested_on', 'approved_by', 'approved_by_name',
+            'approved_on', 'created_at', 'updated_at'
+        ]
 
 
 class DeleteLeaveRequestSerializer(serializers.Serializer):
@@ -29,10 +38,16 @@ class DeleteLeaveRequestSerializer(serializers.Serializer):
 
 
 class LeaveBalanceSerializer(serializers.ModelSerializer):
+    employee_name = serializers.CharField(source='employee.user.username', read_only=True)
+    department_name = serializers.CharField(source='employee.department.name', read_only=True)
+
     class Meta:
         model = LeaveBalance
-        fields = '__all__'
-
+        fields = [
+            'id', 'employee', 'employee_name', 'department_name',
+            'leave_type', 'balance', 'lop_count', 'last_updated',
+            'created_at', 'updated_at'
+        ]
 
 class LeaveActionSerializer(serializers.Serializer):
     leave_id = serializers.IntegerField()

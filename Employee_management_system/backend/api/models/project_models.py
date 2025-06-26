@@ -61,3 +61,4 @@ class ProjectTechnology(models.Model):
 
     def __str__(self):
         return f"{self.project.name} - {self.skill.name}"
+    

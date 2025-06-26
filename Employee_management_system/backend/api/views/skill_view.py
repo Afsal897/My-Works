@@ -4,7 +4,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
 from rest_framework import status
 from api.utils import is_admin, is_manager
-from api.models import Skill, EmployeeSkill
+from api.models import Skill, EmployeeSkill, EmployeeProfile
 from api.serializers import (
     SkillSerializer, 
     EmployeeSkillSerializer,
@@ -104,3 +104,35 @@ def remove_employee_skill(request):
         return Response({"message": "Skill removed from employee."}, status=status.HTTP_204_NO_CONTENT)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def list_all_skills(request):
+    skills = Skill.objects.filter(deleted_at__isnull=True)
+    serializer = SkillSerializer(skills, many=True)
+    return Response(serializer.data)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def list_employee_skills(request):
+    user = request.user
+
+    try:
+        employee = EmployeeProfile.objects.get(user=user)
+    except EmployeeProfile.DoesNotExist:
+        return Response({"error": "Employee profile not found."}, status=404)
+
+    # Admins and Managers can see all employee skills
+    if is_admin(user) or is_manager(user):
+        skills = EmployeeSkill.objects.filter(deleted_at__isnull=True)
+    else:
+        # Regular employees can only see their own skills
+        skills = EmployeeSkill.objects.filter(employee=employee, deleted_at__isnull=True)
+
+    serializer = EmployeeSkillSerializer(skills, many=True)
+    return Response(serializer.data)
+

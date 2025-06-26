@@ -4,8 +4,13 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from api.models import EmployeeProfile, Leave
-from api.serializers import LeaveSerializer, LeaveActionSerializer, DeleteLeaveRequestSerializer
+from api.models import EmployeeProfile, Leave, LeaveBalance
+from api.serializers import (
+    LeaveSerializer, 
+    LeaveActionSerializer, 
+    DeleteLeaveRequestSerializer,
+    LeaveBalanceSerializer
+)
 from datetime import datetime
 from api.utils import is_admin, is_manager
 
@@ -102,3 +107,25 @@ def reject_leave(request):
         }, status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def list_leave_requests(request):
+    leaves = Leave.objects.filter(deleted_at__isnull=True).select_related(
+        'employee__user', 'employee__department', 'approved_by'
+    )
+    serializer = LeaveSerializer(leaves, many=True)
+    return Response(serializer.data)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def list_leave_balances(request):
+    balances = LeaveBalance.objects.filter(deleted_at__isnull=True).select_related(
+        'employee__user', 'employee__department'
+    )
+    serializer = LeaveBalanceSerializer(balances, many=True)
+    return Response(serializer.data)

@@ -4,10 +4,15 @@ from django.utils.timezone import now
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
+    head_name = serializers.SerializerMethodField()
+
     class Meta:
         model = Department
-        fields = ['id', 'name', 'description', 'head']
+        fields = ['id', 'name', 'description', 'head', 'head_name', 'created_at', 'updated_at']
 
+    def get_head_name(self, obj):
+        return obj.head.user.username if obj.head and obj.head.user else None
+    
 
 class DesignationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,10 +22,16 @@ class DesignationSerializer(serializers.ModelSerializer):
 
 class EmployeeProfileSerializer(serializers.ModelSerializer):
     designation_title = serializers.CharField(source='designation.title', read_only=True)
+    department_name = serializers.CharField(source='department.name', read_only=True)
+    user_username = serializers.CharField(source='user.username', read_only=True)
+
     class Meta:
         model = EmployeeProfile
-        fields = '__all__'
-
+        fields = [
+            'id', 'user', 'user_username', 'phone_number', 'date_of_birth',
+            'join_date', 'profile_picture', 'supervisor', 'department', 'department_name',
+            'designation', 'designation_title', 'created_at', 'updated_at'
+        ]
 
 class DeleteDepartmentSerializer(serializers.Serializer):
     department_id = serializers.IntegerField()

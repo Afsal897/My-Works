@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.db import transaction
-from api.models import EmployeeProfile, Resignation, User
+from api.models import EmployeeProfile, Resignation, User, Notification
 from api.serializers import (
     ResignationSerializer, 
     NotificationSerializer,
@@ -12,6 +12,7 @@ from api.serializers import (
     )
 from django.utils.timezone import now
 from dateutil.relativedelta import relativedelta
+from api.utils import is_admin, is_manager
 
 
 @api_view(["POST"])
@@ -78,3 +79,38 @@ def create_notification(request):
         serializer.save()
         return Response({"message": "Notification created successfully."}, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def get_my_notifications(request):
+    user = request.user
+    notifications = Notification.objects.filter(
+        recipient=user, deleted_at__isnull=True
+    ).select_related('sender').order_by('-created_at')
+
+    serializer = NotificationSerializer(notifications, many=True)
+    return Response(serializer.data)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def list_resignations(request):
+    user = request.user
+
+    try:
+        employee_profile = EmployeeProfile.objects.get(user=user)
+    except EmployeeProfile.DoesNotExist:
+        return Response({"error": "Employee profile not found."}, status=404)
+
+    # Admins and Managers see all, employees only their own
+    if is_admin(user) or is_manager(user):
+        resignations = Resignation.objects.filter(deleted_at__isnull=True)
+    else:
+        resignations = Resignation.objects.filter(employee=employee_profile, deleted_at__isnull=True)
+
+    serializer = ResignationSerializer(resignations, many=True)
+    return Response(serializer.data)
+

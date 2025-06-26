@@ -3,8 +3,13 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from api.serializers import DepartmentSerializer, EmployeeProfileSerializer, DeleteDepartmentSerializer
-from api.models import Department, LeaveBalance, EmployeeProfile
+from api.serializers import (
+    DepartmentSerializer, 
+    EmployeeProfileSerializer, 
+    DeleteDepartmentSerializer,
+    DesignationSerializer
+)
+from api.models import Department, LeaveBalance, EmployeeProfile, Designation
 from api.utils import is_admin
 
 
@@ -104,3 +109,30 @@ def edit_employee_profile(request, employee_id):
         return Response({"message": "Employee profile updated successfully."}, status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def list_departments(request):
+    departments = Department.objects.filter(deleted_at__isnull=True).select_related('head', 'head__user')
+    serializer = DepartmentSerializer(departments, many=True)
+    return Response(serializer.data)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def list_designations(request):
+    designations = Designation.objects.filter(deleted_at__isnull=True).order_by('title')
+    serializer = DesignationSerializer(designations, many=True)
+    return Response(serializer.data)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def list_employees(request):
+    employees = EmployeeProfile.objects.filter(deleted_at__isnull=True).select_related('department', 'designation', 'user')
+    serializer = EmployeeProfileSerializer(employees, many=True)
+    return Response(serializer.data)

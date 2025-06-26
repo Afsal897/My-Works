@@ -3,8 +3,14 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.db import transaction
-from api.utils import is_manager
-from api.models import EmployeeProfile, Project, ProjectAssignment
+from api.utils import is_manager, is_admin
+from api.models import (
+    EmployeeProfile, 
+    Project, 
+    ProjectAssignment, 
+    PerformanceRating, 
+    TeammateFeedback
+    )
 from api.serializers import (
     PerformanceRatingSerializer, 
     TeammateFeedbackSerializer, 
@@ -144,4 +150,57 @@ def delete_teammate_feedback(request):
         return Response({"message": "Feedback deleted."}, status=status.HTTP_204_NO_CONTENT)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def list_performance_ratings(request):
+    user = request.user
+
+    if is_admin(user) or is_manager(user):
+        # Admins and Managers can view all
+        ratings = PerformanceRating.objects.filter(deleted_at__isnull=True)
+    else:
+        # Regular employee: get their profile and filter only their ratings
+        try:
+            employee_profile = EmployeeProfile.objects.get(user=user)
+        except EmployeeProfile.DoesNotExist:
+            return Response({"error": "Employee profile not found."}, status=404)
+        
+        ratings = PerformanceRating.objects.filter(employee=employee_profile, deleted_at__isnull=True)
+
+    ratings = ratings.select_related('employee__user', 'rated_by').order_by('-review_date')
+    serializer = PerformanceRatingSerializer(ratings, many=True)
+    return Response(serializer.data)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def list_teammate_feedback(request):
+    user = request.user
+
+    try:
+        employee = EmployeeProfile.objects.get(user=user)
+    except EmployeeProfile.DoesNotExist:
+        return Response({"error": "Employee profile not found."}, status=404)
+
+    if is_admin(user) or is_manager(user):
+        feedbacks = TeammateFeedback.objects.filter(deleted_at__isnull=True)
+    else:
+        feedbacks = TeammateFeedback.objects.filter(
+            deleted_at__isnull=True
+        ).filter(
+            from_employee=employee
+        ) | TeammateFeedback.objects.filter(
+            to_employee=employee,
+            deleted_at__isnull=True
+        )
+
+    feedbacks = feedbacks.select_related('from_employee__user', 'to_employee__user', 'project').order_by('-submitted_on')
+
+    serializer = TeammateFeedbackSerializer(feedbacks, many=True)
+    return Response(serializer.data)
+
 

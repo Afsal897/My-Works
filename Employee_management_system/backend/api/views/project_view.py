@@ -11,9 +11,10 @@ from api.serializers import (
     RemoveProjectAssignmentSerializer,
     ProjectTechnologySerializer,
     RemoveProjectTechnologySerializer,
+    ProjectDetailedSerializer
     )
 from api.utils import is_admin, is_manager
-from api.models import EmployeeProfile, ProjectAssignment, ProjectTechnology
+from api.models import EmployeeProfile, ProjectAssignment, ProjectTechnology, Project
 
 
 @api_view(["POST"])
@@ -177,3 +178,13 @@ def remove_project_technology(request):
         return Response({'message': 'Technology removed from project.'}, status=status.HTTP_204_NO_CONTENT)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def list_projects_with_details(request):
+    projects = Project.objects.filter(deleted_at__isnull=True).select_related('created_by', 'manager')
+    serializer = ProjectDetailedSerializer(projects, many=True)
+    return Response(serializer.data)
+

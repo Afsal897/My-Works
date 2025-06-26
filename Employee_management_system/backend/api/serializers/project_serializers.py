@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models import Project, ProjectAssignment, ProjectTechnology
+from api.models import Project, ProjectAssignment, ProjectTechnology, EmployeeProfile, Skill
 from django.utils.timezone import now
 from api.utils import is_admin
 
@@ -127,3 +127,45 @@ class RemoveProjectTechnologySerializer(serializers.Serializer):
         self.instance.deleted_at = now()
         self.instance.save()
         return self.instance
+
+
+class AssignedEmployeeSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source='user.username', read_only=True)
+    
+    class Meta:
+        model = EmployeeProfile
+        fields = ['id', 'name', 'designation']
+
+class SkillSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Skill
+        fields = ['id', 'name']
+
+class ProjectDetailedSerializer(serializers.ModelSerializer):
+    assigned_people = serializers.SerializerMethodField()
+    technologies = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Project
+        fields = [
+            'id', 'name', 'description', 'start_date', 'end_date',
+            'status', 'created_by', 'manager',
+            'assigned_people', 'technologies'
+        ]
+
+    def get_assigned_people(self, obj):
+        assignments = ProjectAssignment.objects.filter(
+            project=obj,
+            assignment_status='active',
+            deleted_at__isnull=True
+        ).select_related('employee__user', 'employee__designation')
+        employees = [a.employee for a in assignments]
+        return AssignedEmployeeSerializer(employees, many=True).data
+
+    def get_technologies(self, obj):
+        techs = ProjectTechnology.objects.filter(
+            project=obj,
+            deleted_at__isnull=True
+        ).select_related('skill')
+        skills = [t.skill for t in techs]
+        return SkillSerializer(skills, many=True).data
