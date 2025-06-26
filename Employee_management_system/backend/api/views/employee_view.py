@@ -57,23 +57,44 @@ def create_employee_profile(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def create_designation(request):
+    user = request.user
+    if not is_admin(user):
+        return Response({"error": "Only Admins can create designations."}, status=status.HTTP_403_FORBIDDEN)
+    
+    serializer = DesignationSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "Designation created successfully."}, status=status.HTTP_201_CREATED)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(['PATCH'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def edit_department(request, department_id):
+def edit_department(request):
     user = request.user
     if not is_admin(user):
-        return Response({"error":"user does not have permission"}, status=status.HTTP_403_FORBIDDEN)
- 
+        return Response({"error": "User does not have permission."}, status=status.HTTP_403_FORBIDDEN)
+
+    department_id = request.data.get("department_id")
+    if not department_id:
+        return Response({"error": "Department ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+
     try:
         department = Department.objects.get(id=department_id, deleted_at__isnull=True)
     except Department.DoesNotExist:
-        return Response({"error":"Department does not exist"}, status=status.HTTP_404_NOT_FOUND)
-    
+        return Response({"error": "Department does not exist."}, status=status.HTTP_404_NOT_FOUND)
+
     serializer = DepartmentSerializer(department, data=request.data, partial=True)
     if serializer.is_valid():
         serializer.save()
-        return Response({"message": "Department updated successfully."},status=status.HTTP_200_OK)
+        return Response({"message": "Department updated successfully."}, status=status.HTTP_200_OK)
+    
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -94,14 +115,28 @@ def delete_department(request):
 @api_view(["PATCH"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def edit_employee_profile(request, employee_id):
+def edit_employee_profile(request):
     if not is_admin(request.user):
         return Response({"error": "Only Admins can edit employee profiles."}, status=status.HTTP_403_FORBIDDEN)
+
+    employee_id = request.data.get("employee_id")
+    if not employee_id:
+        return Response({"error": "Employee ID is required."}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
         profile = EmployeeProfile.objects.get(id=employee_id, deleted_at__isnull=True)
     except EmployeeProfile.DoesNotExist:
         return Response({"error": "Employee profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    #Validate field names
+    allowed_fields = set(EmployeeProfileSerializer().get_fields().keys()) | {"employee_id"}
+    invalid_fields = [key for key in request.data.keys() if key not in allowed_fields]
+
+    if invalid_fields:
+        return Response({
+            "error": "Invalid field(s) in request.",
+            "invalid_fields": invalid_fields
+        }, status=status.HTTP_400_BAD_REQUEST)
 
     serializer = EmployeeProfileSerializer(profile, data=request.data, partial=True)
     if serializer.is_valid():

@@ -33,6 +33,7 @@ class EmployeeProfileSerializer(serializers.ModelSerializer):
             'designation', 'designation_title', 'created_at', 'updated_at'
         ]
 
+
 class DeleteDepartmentSerializer(serializers.Serializer):
     department_id = serializers.IntegerField()
 
