@@ -19,32 +19,30 @@ from api.utils import is_admin
 
 User = get_user_model()
 
+
 @api_view(['POST'])
 def register_admin(request):
-    # Check if an admin already exists
-    try:
-        admin_role = Role.objects.get(name='Admin')
-        admin_exists = UserRole.objects.filter(role=admin_role).exists()
-    except Role.DoesNotExist:
-        admin_role = Role.objects.create(name='Admin')
+    with transaction.atomic():
+        # Ensure required roles exist
+        admin_role, _ = Role.objects.get_or_create(name='Admin')
         Role.objects.get_or_create(name='Manager')
         Role.objects.get_or_create(name='Employee')
-        admin_exists = False
 
-    if admin_exists:
-        return Response({'error': 'Admin user already exists.'}, status=status.HTTP_403_FORBIDDEN)
+        # Check if an Admin already exists
+        if UserRole.objects.filter(role=admin_role).exists():
+            return Response({'error': 'Admin user already exists.'}, status=status.HTTP_403_FORBIDDEN)
 
-    # Proceed to register the user
-    serializer = UserSerializer(data=request.data)
-    if serializer.is_valid():
-        user = serializer.save()
+        # Validate user data
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
 
-        # Assign 'Admin' role to the newly registered user
-        UserRole.objects.create(user=user, role=admin_role)
+            # Assign 'Admin' role to the user
+            UserRole.objects.create(user=user, role=admin_role)
 
-        return Response({'message': 'Admin user registered successfully.'}, status=status.HTTP_201_CREATED)
+            return Response({'message': 'Admin user registered successfully.'}, status=status.HTTP_201_CREATED)
 
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -113,6 +111,7 @@ def login_user(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+#admin cannot change password not enabled
 @api_view(["PUT"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])

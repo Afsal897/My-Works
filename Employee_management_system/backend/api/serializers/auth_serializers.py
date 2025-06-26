@@ -3,6 +3,7 @@ from api.models import User, Role, UserRole
 from django.contrib.auth import get_user_model
 from django.utils.timezone import now
 from api.utils import is_admin
+from django.contrib.auth import authenticate
 
 User = get_user_model()
 
@@ -47,18 +48,16 @@ class LoginSerializer(serializers.Serializer):
         user = None
 
         # Try username login
-        from django.contrib.auth import authenticate
-        from api.models import User, EmployeeProfile
-
         try:
-            user_obj = User.objects.get(username=identifier)
+            user_obj = User.objects.get(email=identifier)
             user = authenticate(username=user_obj.username, password=password)
         except User.DoesNotExist:
+            # Fallback: Try login using username
             try:
-                emp = EmployeeProfile.objects.get(id=identifier)
-                user = authenticate(username=emp.user.username, password=password)
-            except EmployeeProfile.DoesNotExist:
-                pass
+                user_obj = User.objects.get(username=identifier)
+                user = authenticate(username=user_obj.username, password=password)
+            except User.DoesNotExist:
+                user = None
 
         if not user:
             raise serializers.ValidationError("Invalid login credentials.")
@@ -146,7 +145,7 @@ class DeleteUserSerializer(serializers.Serializer):
         return value
     
     def save(self, **kwargs):
-        user_id = self.validate_user_id['user_id']
+        user_id = self.validated_data['user_id']
         user = User.objects.get(id=user_id)
         user.deleted_at = now()
         user.is_active = False
