@@ -16,6 +16,7 @@ class PerformanceRatingSerializer(serializers.ModelSerializer):
             'project', 'rating', 'review_comment', 
             'review_date','created_at', 'updated_at'
         ]
+        read_only_fields = ['rated_by', 'created_at', 'updated_at']
 
 
 class CreateTeammateFeedbackSerializer(serializers.ModelSerializer):
@@ -120,6 +121,7 @@ class EditTeammateFeedbackSerializer(serializers.ModelSerializer):
     class Meta:
         model = TeammateFeedback
         fields = ['feedback_id', 'feedback_text', 'rating', 'status', 'submitted_on']
+        read_only_fields =["submitted_on"]
 
     def validate_feedback_id(self, value):
         from api.utils import is_admin

@@ -19,12 +19,14 @@ from api.utils import is_admin, is_manager
 @permission_classes([IsAuthenticated])
 def create_department(request):
     if not is_admin(request.user):
-        return Response({'error': 'Only Admins are allowed to perform this action.'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': 'Only Admins are allowed to perform this action.'}, 
+                        status=status.HTTP_403_FORBIDDEN)
     department_name = request.data.get('name', '').strip()
 
     #Check for duplicate department name (case-insensitive)
     if Department.objects.filter(name__iexact=department_name, deleted_at__isnull=True).exists():
-        return Response({'error': f'Department "{department_name}" already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': f'Department "{department_name}" already exists.'}, 
+                        status=status.HTTP_400_BAD_REQUEST)
 
     serializer=DepartmentSerializer(data=request.data)
     if serializer.is_valid():
@@ -38,13 +40,15 @@ def create_department(request):
 @permission_classes([IsAuthenticated])
 def create_employee_profile(request):
     if not is_admin(request.user):
-        return Response({'error': 'Only Admins are allowed to perform this action.'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': 'Only Admins are allowed to perform this action.'}, 
+                        status=status.HTTP_403_FORBIDDEN)
     
     serializer = EmployeeProfileSerializer(data=request.data)
     if serializer.is_valid():
         employee_profile = serializer.save()  # Save and get the instance
 
-        return Response(EmployeeProfileSerializer(employee_profile).data, status=status.HTTP_201_CREATED)
+        return Response(EmployeeProfileSerializer(employee_profile).data, 
+                        status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -54,12 +58,14 @@ def create_employee_profile(request):
 def create_designation(request):
     user = request.user
     if not is_admin(user):
-        return Response({"error": "Only Admins can create designations."}, status=status.HTTP_403_FORBIDDEN)
+        return Response({"error": "Only Admins can create designations."}, 
+                        status=status.HTTP_403_FORBIDDEN)
     
     serializer = DesignationSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        return Response({"message": "Designation created successfully."}, status=status.HTTP_201_CREATED)
+        return Response({"message": "Designation created successfully."}, 
+                        status=status.HTTP_201_CREATED)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -70,21 +76,25 @@ def create_designation(request):
 def edit_department(request):
     user = request.user
     if not is_admin(user):
-        return Response({"error": "User does not have permission."}, status=status.HTTP_403_FORBIDDEN)
+        return Response({"error": "User does not have permission."}, 
+                        status=status.HTTP_403_FORBIDDEN)
 
     department_id = request.data.get("department_id")
     if not department_id:
-        return Response({"error": "Department ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": "Department ID is required."}, 
+                        status=status.HTTP_400_BAD_REQUEST)
 
     try:
         department = Department.objects.get(id=department_id, deleted_at__isnull=True)
     except Department.DoesNotExist:
-        return Response({"error": "Department does not exist."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"error": "Department does not exist."}, 
+                        status=status.HTTP_404_NOT_FOUND)
 
     serializer = DepartmentSerializer(department, data=request.data, partial=True)
     if serializer.is_valid():
         serializer.save()
-        return Response({"message": "Department updated successfully."}, status=status.HTTP_200_OK)
+        return Response({"message": "Department updated successfully."}, 
+                        status=status.HTTP_200_OK)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -94,12 +104,14 @@ def edit_department(request):
 @permission_classes([IsAuthenticated])
 def delete_department(request):
     if not is_admin(request.user):
-        return Response({"error": "Only Admins can delete departments."}, status=status.HTTP_403_FORBIDDEN)
+        return Response({"error": "Only Admins can delete departments."}, 
+                        status=status.HTTP_403_FORBIDDEN)
 
     serializer = DeleteDepartmentSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        return Response({"message": "Department soft-deleted successfully."}, status=status.HTTP_200_OK)
+        return Response({"message": "Department soft-deleted successfully."}, 
+                        status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -108,16 +120,19 @@ def delete_department(request):
 @permission_classes([IsAuthenticated])
 def edit_employee_profile(request):
     if not is_admin(request.user):
-        return Response({"error": "Only Admins can edit employee profiles."}, status=status.HTTP_403_FORBIDDEN)
+        return Response({"error": "Only Admins can edit employee profiles."}, 
+                        status=status.HTTP_403_FORBIDDEN)
 
     employee_id = request.data.get("employee_id")
     if not employee_id:
-        return Response({"error": "Employee ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": "Employee ID is required."}, 
+                        status=status.HTTP_400_BAD_REQUEST)
 
     try:
         profile = EmployeeProfile.objects.get(id=employee_id, deleted_at__isnull=True)
     except EmployeeProfile.DoesNotExist:
-        return Response({"error": "Employee profile not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"error": "Employee profile not found."}, 
+                        status=status.HTTP_404_NOT_FOUND)
 
     #Validate field names
     allowed_fields = set(EmployeeProfileSerializer().get_fields().keys()) | {"employee_id"}
@@ -171,7 +186,8 @@ def list_unassigned_employees(request):
     user = request.user
 
     if not (is_admin(user) or is_manager(user)):
-        return Response({'error': 'Only Admins and Managers can view this list.'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': 'Only Admins and Managers can view this list.'}, 
+                        status=status.HTTP_403_FORBIDDEN)
 
     # Get IDs of employees who are currently assigned to active projects
     assigned_employee_ids = ProjectAssignment.objects.filter(

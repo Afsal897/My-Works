@@ -89,7 +89,7 @@ def delete_performance_rating(request):
     serializer = DeletePerformanceRatingSerializer(data=request.data, context={'user': user})
     if serializer.is_valid():
         serializer.save()
-        return Response({"message": "Performance rating deleted."}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"message": "Performance rating deleted."}, status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -157,7 +157,7 @@ def delete_teammate_feedback(request):
     serializer = DeleteTeammateFeedbackSerializer(data=request.data, context={'user': user})
     if serializer.is_valid():
         serializer.save()
-        return Response({"message": "Feedback deleted."}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"message": "Feedback deleted."}, status=status.HTTP_200_OK)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

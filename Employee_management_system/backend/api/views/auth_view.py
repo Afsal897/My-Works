@@ -30,7 +30,8 @@ def register_admin(request):
 
         # Check if an Admin already exists
         if UserRole.objects.filter(role=admin_role).exists():
-            return Response({'error': 'Admin user already exists.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'error': 'Admin user already exists.'}, 
+                            status=status.HTTP_403_FORBIDDEN)
 
         # Validate user data
         serializer = UserSerializer(data=request.data)
@@ -40,7 +41,8 @@ def register_admin(request):
             # Assign 'Admin' role to the user
             UserRole.objects.create(user=user, role=admin_role)
 
-            return Response({'message': 'Admin user registered successfully.'}, status=status.HTTP_201_CREATED)
+            return Response({'message': 'Admin user registered successfully.'}, 
+                            status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -53,12 +55,14 @@ def register_employee_or_manager(request):
     #Check if logged-in user is Admin
     user = request.user
     if not is_admin(user):
-        return Response({'error': 'Only Admins are allowed to perform this action.'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': 'Only Admins are allowed to perform this action.'}, 
+                        status=status.HTTP_403_FORBIDDEN)
     
     #Extract and validate role
     role_name = request.data.get("role", "Employee").capitalize()
     if role_name not in ["Employee", "Manager"]:
-        return Response({"error": "Role must be either 'Employee' or 'Manager'."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": "Role must be either 'Employee' or 'Manager'."}, 
+                        status=status.HTTP_400_BAD_REQUEST)
 
     #Ensure role exists
     role, _ = Role.objects.get_or_create(name=role_name)
@@ -81,7 +85,8 @@ def register_employee_or_manager(request):
     #Assign role
     UserRole.objects.create(user=user, role=role)
 
-    return Response({'message': f'{role_name} user registered successfully.'}, status=status.HTTP_201_CREATED)
+    return Response({'message': f'{role_name} user registered successfully.'}, 
+                    status=status.HTTP_201_CREATED)
 
 
 @api_view(['POST'])
@@ -124,11 +129,13 @@ def change_password(request):
         new_password = serializer.validated_data["new_password"]
 
         if not user.check_password(old_password):
-            return Response({"old_password": "Incorrect old password."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"old_password": "Incorrect old password."}, 
+                            status=status.HTTP_400_BAD_REQUEST)
 
         user.set_password(new_password)
         user.save()
-        return Response({"message": "Password changed successfully."}, status=status.HTTP_200_OK)
+        return Response({"message": "Password changed successfully."}, 
+                        status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -139,7 +146,8 @@ def change_password(request):
 def change_userrole(request):
     user = request.user
     if not is_admin(user):
-        return Response({'error': 'Only Admins are allowed to perform this action.'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': 'Only Admins are allowed to perform this action.'}, 
+                        status=status.HTTP_403_FORBIDDEN)
     
     serializer = ChangeUserRoleSerializer(data=request.data)
     if serializer.is_valid():
@@ -153,12 +161,14 @@ def change_userrole(request):
 @permission_classes([IsAuthenticated])
 def delete_user(request):
     if not is_admin(request.user):
-        return Response({"error":"only admins can delete accounts"}, status=status.HTTP_403_FORBIDDEN)
+        return Response({"error":"only admins can delete accounts"}, 
+                        status=status.HTTP_403_FORBIDDEN)
     
     serializer = DeleteUserSerializer(data = request.data)
     if serializer.is_valid():
         serializer.save()
-        return Response({"message": "User deleted (soft delete)."}, status=status.HTTP_200_OK)
+        return Response({"message": "User deleted (soft delete)."}, 
+                        status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
