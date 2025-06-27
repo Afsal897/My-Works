@@ -136,10 +136,12 @@ class AssignedEmployeeSerializer(serializers.ModelSerializer):
         model = EmployeeProfile
         fields = ['id', 'name', 'designation']
 
+
 class SkillSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skill
         fields = ['id', 'name']
+
 
 class ProjectDetailedSerializer(serializers.ModelSerializer):
     assigned_people = serializers.SerializerMethodField()

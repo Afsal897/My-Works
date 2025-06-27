@@ -9,6 +9,7 @@ class ResignationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Resignation
         fields = ['id', 'employee', 'employee_name', 'start_date', 'end_date', 'reason', 'status', 'created_at', 'updated_at']
+        read_only_fields = ['employee', 'start_date', 'end_date', 'status', 'created_at', 'updated_at']
 
 class WithdrawResignationSerializer(serializers.Serializer):
     resignation_id = serializers.IntegerField()
@@ -37,13 +38,10 @@ class WithdrawResignationSerializer(serializers.Serializer):
 
 
 class NotificationSerializer(serializers.ModelSerializer):
-    sender_username = serializers.CharField(source='sender.username', read_only=True)
-
     class Meta:
         model = Notification
         fields = [
             'id', 'title', 'message', 'event_type', 'related_entity_id',
-            'sender', 'sender_username', 'is_read',
-            'created_at', 'updated_at'
+            'is_read', 'created_at', 'updated_at'
         ]
 

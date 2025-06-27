@@ -49,7 +49,7 @@ def withdraw_resignation(request):
 
     if serializer.is_valid():
         serializer.save()
-        return Response({'message': 'Resignation withdrawn successfully.'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'Resignation withdrawn successfully.'}, status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -87,8 +87,7 @@ def create_notification(request):
 def get_my_notifications(request):
     user = request.user
     notifications = Notification.objects.filter(
-        recipient=user, deleted_at__isnull=True
-    ).select_related('sender').order_by('-created_at')
+    recipient=user, deleted_at__isnull=True).order_by('-created_at')
 
     serializer = NotificationSerializer(notifications, many=True)
     return Response(serializer.data)
@@ -100,15 +99,15 @@ def get_my_notifications(request):
 def list_resignations(request):
     user = request.user
 
-    try:
-        employee_profile = EmployeeProfile.objects.get(user=user)
-    except EmployeeProfile.DoesNotExist:
-        return Response({"error": "Employee profile not found."}, status=404)
-
-    # Admins and Managers see all, employees only their own
+    # Admins and Managers see all
     if is_admin(user) or is_manager(user):
         resignations = Resignation.objects.filter(deleted_at__isnull=True)
     else:
+        try:
+            employee_profile = EmployeeProfile.objects.get(user=user)
+        except EmployeeProfile.DoesNotExist:
+            return Response({"error": "Employee profile not found."}, status=404)
+
         resignations = Resignation.objects.filter(employee=employee_profile, deleted_at__isnull=True)
 
     serializer = ResignationSerializer(resignations, many=True)

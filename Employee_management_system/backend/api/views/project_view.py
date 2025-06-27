@@ -14,7 +14,7 @@ from api.serializers import (
     ProjectDetailedSerializer
     )
 from api.utils import is_admin, is_manager
-from api.models import EmployeeProfile, ProjectAssignment, ProjectTechnology, Project
+from api.models import EmployeeProfile, ProjectAssignment, ProjectTechnology, Project, Skill
 
 
 @api_view(["POST"])
@@ -72,7 +72,7 @@ def delete_project(request):
     serializer = DeleteProjectSerializer(data=request.data, context={'user': user})
     if serializer.is_valid():
         serializer.save()
-        return Response({"message": "Project deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"message": "Project deleted successfully."}, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -87,27 +87,36 @@ def assign_employee_to_project(request):
                         status=status.HTTP_403_FORBIDDEN)
 
     data = request.data.copy()
-    # Auto-assign the assigner
-    data['assigned_by'] = user.id  
+    data['assigned_by'] = user.id
 
-    # Check for duplicate (project, employee)
     project_id = data.get('project')
     employee_id = data.get('employee')
 
+    # Check if this employee is already assigned to this project
     if ProjectAssignment.objects.filter(
         project_id=project_id,
         employee_id=employee_id,
         deleted_at__isnull=True
     ).exists():
         return Response({'error': 'This employee is already assigned to this project.'},
+                        status=status.HTTP_409_CONFLICT)
+
+    # Check if employee is already active in any other project
+    if ProjectAssignment.objects.filter(
+        employee_id=employee_id,
+        assignment_status='active',
+        deleted_at__isnull=True
+    ).exists():
+        return Response({'error': 'Employee is already actively assigned to another project.'},
                         status=status.HTTP_400_BAD_REQUEST)
 
     serializer = ProjectAssignmentSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
+
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 @api_view(["DELETE"])
@@ -118,7 +127,7 @@ def remove_employee_from_project(request):
     serializer = RemoveProjectAssignmentSerializer(data=request.data, context={'user': user})
     if serializer.is_valid():
         serializer.save()
-        return Response({"message": "Employee removed from project."}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"message": "Employee removed from project."}, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -128,7 +137,6 @@ def remove_employee_from_project(request):
 def assign_project_technology(request):
     user = request.user
 
-    #Only Admins and Managers can assign technologies
     if not (is_admin(user) or is_manager(user)):
         return Response(
             {'error': 'Only Admins and Managers can assign technologies to projects.'},
@@ -136,11 +144,24 @@ def assign_project_technology(request):
         )
 
     data = request.data.copy()
-
-    #Uniqueness Check
     project_id = data.get('project')
     skill_id = data.get('skill')
 
+    # Check if the skill itself is soft-deleted
+    try:
+        skill = Skill.objects.get(id=skill_id)
+        if skill.deleted_at is not None:
+            return Response(
+                {'error': 'Cannot assign a deleted (inactive) skill to a project.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    except Skill.DoesNotExist:
+        return Response(
+            {'error': 'Skill does not exist.'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    # Prevent duplicate active assignment
     if ProjectTechnology.objects.filter(
         project_id=project_id,
         skill_id=skill_id,
@@ -148,8 +169,8 @@ def assign_project_technology(request):
     ).exists():
         return Response(
             {'error': 'This technology is already assigned to the project.'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+            status=status.HTTP_409_CONFLICT
+        )  
 
     serializer = ProjectTechnologySerializer(data=data)
     if serializer.is_valid():
@@ -157,6 +178,7 @@ def assign_project_technology(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 @api_view(["DELETE"])
@@ -175,7 +197,7 @@ def remove_project_technology(request):
     serializer = RemoveProjectTechnologySerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        return Response({'message': 'Technology removed from project.'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'Technology removed from project.'}, status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
