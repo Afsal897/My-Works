@@ -13,10 +13,40 @@ class PerformanceRatingSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'employee', 'employee_name',
             'rated_by', 'rated_by_name',
-            'rating', 'review_comment', 'review_date',
-            'created_at', 'updated_at'
+            'project', 'rating', 'review_comment', 
+            'review_date','created_at', 'updated_at'
         ]
 
+
+class CreateTeammateFeedbackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TeammateFeedback
+        fields = ['to_employee', 'project', 'feedback_text', 'rating', 'status']
+
+    def validate(self, data):
+        from_employee = self.context['from_employee']
+        to_employee = data.get("to_employee")
+        project = data.get("project")
+
+        # Prevent self-feedback
+        if to_employee == from_employee:
+            raise serializers.ValidationError("You cannot give feedback to yourself.")
+
+        # Check for duplicate feedback (same from, to, and project)
+        if TeammateFeedback.objects.filter(
+            from_employee=from_employee,
+            to_employee=to_employee,
+            project=project,
+            deleted_at__isnull=True
+        ).exists():
+            raise serializers.ValidationError("Feedback already submitted for this teammate in the selected project.")
+
+        return data
+
+    def create(self, validated_data):
+        from_employee = self.context['from_employee']
+        validated_data['from_employee'] = from_employee
+        return TeammateFeedback.objects.create(**validated_data)
 
 class TeammateFeedbackSerializer(serializers.ModelSerializer):
     from_employee_name = serializers.CharField(source='from_employee.user.username', read_only=True)

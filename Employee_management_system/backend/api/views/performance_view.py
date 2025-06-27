@@ -17,7 +17,8 @@ from api.serializers import (
     EditPerformanceRatingSerializer, 
     DeletePerformanceRatingSerializer,
     EditTeammateFeedbackSerializer,
-    DeleteTeammateFeedbackSerializer
+    DeleteTeammateFeedbackSerializer,
+    CreateTeammateFeedbackSerializer
     )
 from django.utils.timezone import now
 from rest_framework import status
@@ -33,26 +34,35 @@ def submit_performance_rating(request):
     if not is_manager(user):
         return Response({"error": "Only managers can submit performance ratings."}, status=status.HTTP_403_FORBIDDEN)
 
+    # Get manager's profile
+    try:
+        manager_profile = EmployeeProfile.objects.get(user=user)
+    except EmployeeProfile.DoesNotExist:
+        return Response({"error": "Manager profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
     employee_id = request.data.get("employee")
+    project_id = request.data.get("project")
+
     try:
         employee = EmployeeProfile.objects.get(id=employee_id)
     except EmployeeProfile.DoesNotExist:
         return Response({"error": "Employee not found."}, status=status.HTTP_404_NOT_FOUND)
 
-    #Filter completed projects managed by this manager
-    manager_completed_projects = Project.objects.filter(manager=user, status="completed")
+    try:
+        project = Project.objects.get(id=project_id, manager=manager_profile, status="completed")
+    except Project.DoesNotExist:
+        return Response({"error": "Project not found or not managed by you or not completed."}, status=status.HTTP_404_NOT_FOUND)
 
-    #Check if the employee is assigned to any of these completed projects
-    if not ProjectAssignment.objects.filter(employee=employee, project__in=manager_completed_projects).exists():
-        return Response({
-            "error": "You can only rate employees assigned to your completed projects."
-        }, status=403)
-    
-    #Create rating
+    # Confirm employee is assigned to that project
+    if not ProjectAssignment.objects.filter(employee=employee, project=project).exists():
+        return Response({"error": "Employee is not assigned to this project."}, status=status.HTTP_403_FORBIDDEN)
+
+    # Validate & Save
     serializer = PerformanceRatingSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save(rated_by=user)
         return Response({"message": "Performance rating submitted."}, status=status.HTTP_201_CREATED)
+
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -114,7 +124,7 @@ def submit_teammate_feedback(request):
         return Response({"error": "Both employees must be part of the same project."}, status=status.HTTP_403_FORBIDDEN)
 
     # Serialize & save
-    serializer = TeammateFeedbackSerializer(data=request.data)
+    serializer = CreateTeammateFeedbackSerializer(data=request.data, context={'from_employee': from_employee})
     if serializer.is_valid():
         status_value = serializer.validated_data.get("status")
         submitted_on = now() if status_value == "submitted" else None
@@ -159,15 +169,15 @@ def list_performance_ratings(request):
     user = request.user
 
     if is_admin(user) or is_manager(user):
-        # Admins and Managers can view all
+        # Admins and Managers can view all ratings
         ratings = PerformanceRating.objects.filter(deleted_at__isnull=True)
     else:
-        # Regular employee: get their profile and filter only their ratings
+        # Regular employee: get their profile
         try:
             employee_profile = EmployeeProfile.objects.get(user=user)
         except EmployeeProfile.DoesNotExist:
             return Response({"error": "Employee profile not found."}, status=404)
-        
+
         ratings = PerformanceRating.objects.filter(employee=employee_profile, deleted_at__isnull=True)
 
     ratings = ratings.select_related('employee__user', 'rated_by').order_by('-review_date')
@@ -175,20 +185,22 @@ def list_performance_ratings(request):
     return Response(serializer.data)
 
 
+
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def list_teammate_feedback(request):
     user = request.user
-
-    try:
-        employee = EmployeeProfile.objects.get(user=user)
-    except EmployeeProfile.DoesNotExist:
-        return Response({"error": "Employee profile not found."}, status=404)
+    project_id = request.query_params.get("project_id")
 
     if is_admin(user) or is_manager(user):
         feedbacks = TeammateFeedback.objects.filter(deleted_at__isnull=True)
     else:
+        try:
+            employee = EmployeeProfile.objects.get(user=user)
+        except EmployeeProfile.DoesNotExist:
+            return Response({"error": "Employee profile not found."}, status=404)
+
         feedbacks = TeammateFeedback.objects.filter(
             deleted_at__isnull=True
         ).filter(
@@ -198,9 +210,13 @@ def list_teammate_feedback(request):
             deleted_at__isnull=True
         )
 
-    feedbacks = feedbacks.select_related('from_employee__user', 'to_employee__user', 'project').order_by('-submitted_on')
+    if project_id:
+        feedbacks = feedbacks.filter(project_id=project_id)
 
+    feedbacks = feedbacks.select_related('from_employee__user', 'to_employee__user', 'project').order_by('-submitted_on')
     serializer = TeammateFeedbackSerializer(feedbacks, many=True)
     return Response(serializer.data)
+
+
 
 

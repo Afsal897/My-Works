@@ -5,6 +5,7 @@ from .project_models import Project
 
 
 class PerformanceRating(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True, blank=True)
     employee = models.ForeignKey(EmployeeProfile, on_delete=models.CASCADE, related_name='ratings')
     rated_by = models.ForeignKey(User, on_delete=models.CASCADE)
     rating = models.FloatField()

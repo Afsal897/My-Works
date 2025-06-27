@@ -1,5 +1,6 @@
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from django.db import transaction
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -11,7 +12,8 @@ from api.serializers import (
     RemoveProjectAssignmentSerializer,
     ProjectTechnologySerializer,
     RemoveProjectTechnologySerializer,
-    ProjectDetailedSerializer
+    ProjectDetailedSerializer,
+    CompleteProjectSerializer
     )
 from api.utils import is_admin, is_manager
 from api.models import EmployeeProfile, ProjectAssignment, ProjectTechnology, Project, Skill
@@ -76,6 +78,24 @@ def delete_project(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(["PUT"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+@transaction.atomic
+def complete_project(request):
+    user = request.user
+
+    if not (is_admin(user) or is_manager(user)):
+        return Response({'error': 'Only Admins and Managers can complete projects.'}, status=status.HTTP_403_FORBIDDEN)
+
+    serializer = CompleteProjectSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "Project marked as completed and all assignments closed."}, status=status.HTTP_200_OK)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -101,14 +121,23 @@ def assign_employee_to_project(request):
         return Response({'error': 'This employee is already assigned to this project.'},
                         status=status.HTTP_409_CONFLICT)
 
-    # Check if employee is already active in any other project
-    if ProjectAssignment.objects.filter(
-        employee_id=employee_id,
-        assignment_status='active',
-        deleted_at__isnull=True
-    ).exists():
-        return Response({'error': 'Employee is already actively assigned to another project.'},
-                        status=status.HTTP_400_BAD_REQUEST)
+    # Get the employee's user type
+    try:
+        employee_profile = EmployeeProfile.objects.get(id=employee_id)
+    except EmployeeProfile.DoesNotExist:
+        return Response({'error': 'Employee not found.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    employee_user = employee_profile.user
+
+    # Only restrict multiple active project assignments for non-managers
+    if not is_manager(employee_user):
+        if ProjectAssignment.objects.filter(
+            employee_id=employee_id,
+            assignment_status='active',
+            deleted_at__isnull=True
+        ).exists():
+            return Response({'error': 'Employee is already actively assigned to another project.'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
     serializer = ProjectAssignmentSerializer(data=data)
     if serializer.is_valid():
@@ -116,7 +145,6 @@ def assign_employee_to_project(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 @api_view(["DELETE"])
@@ -178,7 +206,6 @@ def assign_project_technology(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 @api_view(["DELETE"])

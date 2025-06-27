@@ -7,10 +7,11 @@ from api.serializers import (
     DepartmentSerializer, 
     EmployeeProfileSerializer, 
     DeleteDepartmentSerializer,
-    DesignationSerializer
+    DesignationSerializer,
+    UnassignedEmployeeSerializer
 )
-from api.models import Department, EmployeeProfile, Designation
-from api.utils import is_admin
+from api.models import Department, EmployeeProfile, Designation, ProjectAssignment
+from api.utils import is_admin, is_manager
 
 
 @api_view(['POST'])
@@ -161,3 +162,25 @@ def list_employees(request):
     employees = EmployeeProfile.objects.filter(deleted_at__isnull=True).select_related('department', 'designation', 'user')
     serializer = EmployeeProfileSerializer(employees, many=True)
     return Response(serializer.data)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def list_unassigned_employees(request):
+    user = request.user
+
+    if not (is_admin(user) or is_manager(user)):
+        return Response({'error': 'Only Admins and Managers can view this list.'}, status=status.HTTP_403_FORBIDDEN)
+
+    # Get IDs of employees who are currently assigned to active projects
+    assigned_employee_ids = ProjectAssignment.objects.filter(
+        assignment_status='active',
+        deleted_at__isnull=True
+    ).values_list('employee_id', flat=True).distinct()
+
+    # Fetch all employees NOT in the assigned list
+    unassigned_employees = EmployeeProfile.objects.exclude(id__in=assigned_employee_ids)
+
+    serializer = UnassignedEmployeeSerializer(unassigned_employees, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)

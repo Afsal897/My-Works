@@ -9,5 +9,6 @@ urlpatterns = [
     path('delete_project/',project_view.delete_project, name = "delete_project"),
     path('remove_employee_from_project/',project_view.remove_employee_from_project, name = "remove_employee_from_project"),
     path('remove_project_technology/',project_view.remove_project_technology, name = "remove_project_technology"),
-    path('list_projects_with_details/',project_view.list_projects_with_details, name = "list_projects_with_details")
+    path('list_projects_with_details/',project_view.list_projects_with_details, name = "list_projects_with_details"),
+    path('complete_project/',project_view.complete_project, name = "complete_project"),
     ]

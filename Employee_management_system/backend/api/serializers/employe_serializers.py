@@ -51,3 +51,10 @@ class DeleteDepartmentSerializer(serializers.Serializer):
         return department
     
 
+class UnassignedEmployeeSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source='user.username', read_only=True)
+
+    class Meta:
+        model = EmployeeProfile
+        fields = ['id', 'name', 'designation']
+

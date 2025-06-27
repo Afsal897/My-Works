@@ -171,3 +171,33 @@ class ProjectDetailedSerializer(serializers.ModelSerializer):
         ).select_related('skill')
         skills = [t.skill for t in techs]
         return SkillSerializer(skills, many=True).data
+
+
+class CompleteProjectSerializer(serializers.Serializer):
+    project_id = serializers.IntegerField()
+
+    def validate_project_id(self, value):
+        try:
+            project = Project.objects.get(id=value, deleted_at__isnull=True)
+        except Project.DoesNotExist:
+            raise serializers.ValidationError("Project not found.")
+
+        self.instance = project
+        return value
+
+    def save(self, **kwargs):
+        project = self.instance
+        project.status = "completed"
+        project.save()
+
+        # Mark all active assignments as completed and soft-delete
+        ProjectAssignment.objects.filter(
+            project=project,
+            assignment_status='active',
+            deleted_at__isnull=True
+        ).update(
+            assignment_status='completed',
+            deleted_at=now()
+        )
+
+        return project

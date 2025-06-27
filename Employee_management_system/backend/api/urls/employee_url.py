@@ -10,5 +10,6 @@ urlpatterns = [
     path('edit_employee_profile/',employee_view.edit_employee_profile, name = "edit_employee_profile"),
     path('list_departments/',employee_view.list_departments, name = "list_departments"),
     path('list_designations/',employee_view.list_designations, name = "list_designations"),
-    path('list_employees/',employee_view.list_employees, name = "list_employees")
+    path('list_employees/',employee_view.list_employees, name = "list_employees"),
+    path('list_unassigned_employees/',employee_view.list_unassigned_employees, name = "list_unassigned_employees"),
 ]
