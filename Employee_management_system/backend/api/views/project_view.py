@@ -27,7 +27,8 @@ def create_project(request):
 
     # Allow only Admins and Managers
     if not (is_admin(user) or is_manager(user)):
-        return Response({'error': 'Only Admins and Managers can create projects.'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': 'Only Admins and Managers can create projects.'}, 
+                        status=status.HTTP_403_FORBIDDEN)
 
     data = request.data.copy()
     # Automatically assign current user as creator
@@ -39,11 +40,13 @@ def create_project(request):
         try:
             manager_profile = EmployeeProfile.objects.get(pk=manager_id)
         except EmployeeProfile.DoesNotExist:
-            return Response({'error': 'Manager profile not found.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Manager profile not found.'}, 
+                            status=status.HTTP_400_BAD_REQUEST)
 
         manager_user = manager_profile.user
         if not is_manager(manager_user):
-            return Response({'error': 'Selected employee is not a Manager.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Selected employee is not a Manager.'}, 
+                            status=status.HTTP_400_BAD_REQUEST)
 
     # Validate and save
     serializer = ProjectSerializer(data=data)
@@ -74,7 +77,8 @@ def delete_project(request):
     serializer = DeleteProjectSerializer(data=request.data, context={'user': user})
     if serializer.is_valid():
         serializer.save()
-        return Response({"message": "Project deleted successfully."}, status=status.HTTP_200_OK)
+        return Response({"message": "Project deleted successfully."}, 
+                        status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -86,12 +90,14 @@ def complete_project(request):
     user = request.user
 
     if not (is_admin(user) or is_manager(user)):
-        return Response({'error': 'Only Admins and Managers can complete projects.'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': 'Only Admins and Managers can complete projects.'}, 
+                        status=status.HTTP_403_FORBIDDEN)
 
     serializer = CompleteProjectSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        return Response({"message": "Project marked as completed and all assignments closed."}, status=status.HTTP_200_OK)
+        return Response({"message": "Project marked as completed and all assignments closed."}, 
+                        status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -125,7 +131,8 @@ def assign_employee_to_project(request):
     try:
         employee_profile = EmployeeProfile.objects.get(id=employee_id)
     except EmployeeProfile.DoesNotExist:
-        return Response({'error': 'Employee not found.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Employee not found.'}, 
+                        status=status.HTTP_400_BAD_REQUEST)
 
     employee_user = employee_profile.user
 
@@ -155,7 +162,8 @@ def remove_employee_from_project(request):
     serializer = RemoveProjectAssignmentSerializer(data=request.data, context={'user': user})
     if serializer.is_valid():
         serializer.save()
-        return Response({"message": "Employee removed from project."}, status=status.HTTP_200_OK)
+        return Response({"message": "Employee removed from project."}, 
+                        status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -224,7 +232,8 @@ def remove_project_technology(request):
     serializer = RemoveProjectTechnologySerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        return Response({'message': 'Technology removed from project.'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Technology removed from project.'}, 
+                        status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

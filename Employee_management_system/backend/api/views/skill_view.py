@@ -24,7 +24,8 @@ def create_skill(request):
     print("duplicate")
     # Check for duplicate skill
     if Skill.objects.filter(name__iexact=skill_name, deleted_at__isnull=True).exists():
-        return Response({'error': f'Skill "{skill_name}" already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': f'Skill "{skill_name}" already exists.'}, 
+                        status=status.HTTP_400_BAD_REQUEST)
     print("no dup")
     serializer = SkillSerializer(data=request.data)
     if serializer.is_valid():
@@ -42,7 +43,8 @@ def edit_skill(request):
     user = request.user
 
     if not is_admin(user):
-        return Response({'error': 'Only admins can edit skills.'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': 'Only admins can edit skills.'}, 
+                        status=status.HTTP_403_FORBIDDEN)
 
     serializer = EditSkillSerializer(data=request.data, context={'user': user})
     if serializer.is_valid():
@@ -59,12 +61,14 @@ def delete_skill(request):
     user = request.user
 
     if not is_admin(user):
-        return Response({'error': 'Only admins can delete skills.'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': 'Only admins can delete skills.'}, 
+                        status=status.HTTP_403_FORBIDDEN)
 
     serializer = DeleteSkillSerializer(data=request.data, context={'user': user})
     if serializer.is_valid():
         serializer.save()
-        return Response({'message': 'Skill deleted successfully.'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Skill deleted successfully.'}, 
+                        status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -101,7 +105,8 @@ def remove_employee_skill(request):
     serializer = RemoveEmployeeSkillSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        return Response({"message": "Employee skill deleted successfully."}, status=status.HTTP_200_OK)
+        return Response({"message": "Employee skill deleted successfully."}, 
+                        status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

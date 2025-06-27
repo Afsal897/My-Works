@@ -32,13 +32,15 @@ def submit_performance_rating(request):
     user = request.user
 
     if not is_manager(user):
-        return Response({"error": "Only managers can submit performance ratings."}, status=status.HTTP_403_FORBIDDEN)
+        return Response({"error": "Only managers can submit performance ratings."}, 
+                        status=status.HTTP_403_FORBIDDEN)
 
     # Get manager's profile
     try:
         manager_profile = EmployeeProfile.objects.get(user=user)
     except EmployeeProfile.DoesNotExist:
-        return Response({"error": "Manager profile not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"error": "Manager profile not found."}, 
+                        status=status.HTTP_404_NOT_FOUND)
 
     employee_id = request.data.get("employee")
     project_id = request.data.get("project")
@@ -46,22 +48,26 @@ def submit_performance_rating(request):
     try:
         employee = EmployeeProfile.objects.get(id=employee_id)
     except EmployeeProfile.DoesNotExist:
-        return Response({"error": "Employee not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"error": "Employee not found."}, 
+                        status=status.HTTP_404_NOT_FOUND)
 
     try:
         project = Project.objects.get(id=project_id, manager=manager_profile, status="completed")
     except Project.DoesNotExist:
-        return Response({"error": "Project not found or not managed by you or not completed."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"error": "Project not found or not managed by you or not completed."}, 
+                        status=status.HTTP_404_NOT_FOUND)
 
     # Confirm employee is assigned to that project
     if not ProjectAssignment.objects.filter(employee=employee, project=project).exists():
-        return Response({"error": "Employee is not assigned to this project."}, status=status.HTTP_403_FORBIDDEN)
+        return Response({"error": "Employee is not assigned to this project."}, 
+                        status=status.HTTP_403_FORBIDDEN)
 
     # Validate & Save
     serializer = PerformanceRatingSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save(rated_by=user)
-        return Response({"message": "Performance rating submitted."}, status=status.HTTP_201_CREATED)
+        return Response({"message": "Performance rating submitted."}, 
+                        status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -75,7 +81,8 @@ def edit_performance_rating(request):
     serializer = EditPerformanceRatingSerializer(data=request.data, context={'user': user})
     if serializer.is_valid():
         updated_rating = serializer.save()
-        return Response(EditPerformanceRatingSerializer(updated_rating).data, status=status.HTTP_200_OK)
+        return Response(EditPerformanceRatingSerializer(updated_rating).data, 
+                        status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -89,7 +96,8 @@ def delete_performance_rating(request):
     serializer = DeletePerformanceRatingSerializer(data=request.data, context={'user': user})
     if serializer.is_valid():
         serializer.save()
-        return Response({"message": "Performance rating deleted."}, status=status.HTTP_200_OK)
+        return Response({"message": "Performance rating deleted."}, 
+                        status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -102,7 +110,8 @@ def submit_teammate_feedback(request):
     try:
         from_employee = EmployeeProfile.objects.get(user=request.user)
     except EmployeeProfile.DoesNotExist:
-        return Response({"error": "Employee profile not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"error": "Employee profile not found."}, 
+                        status=status.HTTP_404_NOT_FOUND)
 
     to_employee_id = request.data.get("to_employee")
     project_id = request.data.get("project")
@@ -111,7 +120,8 @@ def submit_teammate_feedback(request):
     try:
         to_employee = EmployeeProfile.objects.get(id=to_employee_id)
     except EmployeeProfile.DoesNotExist:
-        return Response({"error": "Recipient employee not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"error": "Recipient employee not found."}, 
+                        status=status.HTTP_404_NOT_FOUND)
 
     #both employees are assigned to the same project
     is_valid_pair = ProjectAssignment.objects.filter(
@@ -121,7 +131,8 @@ def submit_teammate_feedback(request):
     ).exists()
 
     if not is_valid_pair:
-        return Response({"error": "Both employees must be part of the same project."}, status=status.HTTP_403_FORBIDDEN)
+        return Response({"error": "Both employees must be part of the same project."}, 
+                        status=status.HTTP_403_FORBIDDEN)
 
     # Serialize & save
     serializer = CreateTeammateFeedbackSerializer(data=request.data, context={'from_employee': from_employee})
@@ -143,7 +154,8 @@ def edit_teammate_feedback(request):
     serializer = EditTeammateFeedbackSerializer(data=request.data, context={'user': user})
     if serializer.is_valid():
         feedback = serializer.save()
-        return Response(EditTeammateFeedbackSerializer(feedback).data, status=status.HTTP_200_OK)
+        return Response(EditTeammateFeedbackSerializer(feedback).data, 
+                        status=status.HTTP_200_OK)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -185,7 +197,6 @@ def list_performance_ratings(request):
     return Response(serializer.data)
 
 
-
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -216,7 +227,5 @@ def list_teammate_feedback(request):
     feedbacks = feedbacks.select_related('from_employee__user', 'to_employee__user', 'project').order_by('-submitted_on')
     serializer = TeammateFeedbackSerializer(feedbacks, many=True)
     return Response(serializer.data)
-
-
 
 
