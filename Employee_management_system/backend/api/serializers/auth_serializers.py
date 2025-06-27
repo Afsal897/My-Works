@@ -86,10 +86,10 @@ class RoleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class UserRoleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserRole
-        fields = '__all__'
+# class UserRoleSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = UserRole
+#         fields = '__all__'
 
 
 class ChangeUserRoleSerializer(serializers.Serializer):

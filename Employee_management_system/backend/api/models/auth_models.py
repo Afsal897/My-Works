@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from datetime import datetime
+from django.utils.timezone import now
 
 
 class User(AbstractUser):
@@ -24,7 +24,7 @@ class Role(models.Model):
 class UserRole(models.Model):
     user = models.OneToOneField('User', on_delete=models.CASCADE)#user only appear once
     role = models.ForeignKey('Role', on_delete=models.CASCADE)
-    assigned_at = models.DateTimeField(default=datetime.now)
+    assigned_at = models.DateTimeField(default=now)
 
     class Meta:
         unique_together = ('user', 'role')
