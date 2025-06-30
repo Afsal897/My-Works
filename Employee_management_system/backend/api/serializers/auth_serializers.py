@@ -3,7 +3,8 @@ from api.models import User, Role, UserRole
 from django.contrib.auth import get_user_model
 from django.utils.timezone import now
 from api.utils import is_admin
-from django.contrib.auth import authenticate
+from django.contrib.auth.hashers import check_password
+
 
 User = get_user_model()
 
@@ -45,25 +46,26 @@ class LoginSerializer(serializers.Serializer):
         identifier = data['identifier']
         password = data['password']
 
-        user = None
-
-        # Try username login
+        # Try getting user by email or username
         try:
-            user_obj = User.objects.get(email=identifier)
-            user = authenticate(username=user_obj.username, password=password)
+            user = User.objects.get(email=identifier)
         except User.DoesNotExist:
-            # Fallback: Try login using username
             try:
-                user_obj = User.objects.get(username=identifier)
-                user = authenticate(username=user_obj.username, password=password)
+                user = User.objects.get(username=identifier)
             except User.DoesNotExist:
-                user = None
+                raise serializers.ValidationError("Invalid login credentials.")
 
-        if not user:
-            raise serializers.ValidationError("Invalid login credentials.")
-        
+        # Check soft deletion
+        if getattr(user, "is_deleted", False) or getattr(user, "deleted_at", None):
+            raise serializers.ValidationError("User is disabled.")
+
+        # Check if inactive
         if not user.is_active:
             raise serializers.ValidationError("User is disabled.")
+
+        # Check password
+        if not check_password(password, user.password):
+            raise serializers.ValidationError("Invalid login credentials.")
 
         data['user'] = user
         return data
@@ -84,12 +86,6 @@ class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
         fields = '__all__'
-
-
-# class UserRoleSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = UserRole
-#         fields = '__all__'
 
 
 class ChangeUserRoleSerializer(serializers.Serializer):
