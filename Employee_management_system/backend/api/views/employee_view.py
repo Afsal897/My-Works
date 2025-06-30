@@ -189,14 +189,18 @@ def list_unassigned_employees(request):
         return Response({'error': 'Only Admins and Managers can view this list.'}, 
                         status=status.HTTP_403_FORBIDDEN)
 
-    # Get IDs of employees who are currently assigned to active projects
+    # Get IDs of employees assigned to active projects
     assigned_employee_ids = ProjectAssignment.objects.filter(
         assignment_status='active',
         deleted_at__isnull=True
     ).values_list('employee_id', flat=True).distinct()
 
-    # Fetch all employees NOT in the assigned list
-    unassigned_employees = EmployeeProfile.objects.exclude(id__in=assigned_employee_ids)
+    # ✅ Only non-deleted, role='Employee', and not assigned
+    unassigned_employees = EmployeeProfile.objects.filter(
+        deleted_at__isnull=True,
+        user__userrole__role__name='Employee'
+    ).exclude(id__in=assigned_employee_ids)
 
     serializer = UnassignedEmployeeSerializer(unassigned_employees, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+

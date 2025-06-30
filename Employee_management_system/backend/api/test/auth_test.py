@@ -52,7 +52,6 @@ class RegisterAdminTest(APITestCase):
         self.assertEqual(response.data['error'], "Admin user already exists.")
 
 
-
 class RegisterEmployeeOrManagerTest(APITestCase):
 
     def setUp(self):
@@ -401,6 +400,7 @@ class ChangeUserRoleTest(APITestCase):
 
 
 class DeleteUserTest(APITestCase):
+
     def setUp(self):
         # Create roles
         self.admin_role,_ = Role.objects.get_or_create(name="Admin")
@@ -521,3 +521,4 @@ class ListUsersWithRolesTest(APITestCase):
     def test_requires_authentication(self):
         response = self.client.get(self.url, format="json")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+

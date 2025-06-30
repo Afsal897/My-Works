@@ -3,6 +3,7 @@ from datetime import datetime
 from .auth_models import User
 from .employee_models import EmployeeProfile
 from .skill_models import Skill
+from django.utils.timezone import now
 
 
 class Project(models.Model):
@@ -30,7 +31,7 @@ class ProjectAssignment(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     employee = models.ForeignKey(EmployeeProfile, on_delete=models.CASCADE)
     assigned_by = models.ForeignKey(User, on_delete=models.CASCADE)
-    assigned_on = models.DateTimeField(default=datetime.now)
+    assigned_on = models.DateTimeField(default=now)
     
     ASSIGNMENT_STATUS = [
         ('active', 'Active'),
