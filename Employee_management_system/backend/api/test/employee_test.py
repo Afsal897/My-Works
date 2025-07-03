@@ -619,7 +619,6 @@ class ListUnassignedEmployeesTestCase(APITestCase):
             assigned_by=self.admin_user
         )
 
-
     def get_auth_header(self, user):
         refresh = RefreshToken.for_user(user)
         return {'HTTP_AUTHORIZATION': f'Bearer {str(refresh.access_token)}'}

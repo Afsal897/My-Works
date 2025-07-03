@@ -49,6 +49,7 @@ class CreateTeammateFeedbackSerializer(serializers.ModelSerializer):
         validated_data['from_employee'] = from_employee
         return TeammateFeedback.objects.create(**validated_data)
 
+
 class TeammateFeedbackSerializer(serializers.ModelSerializer):
     from_employee_name = serializers.CharField(source='from_employee.user.username', read_only=True)
     to_employee_name = serializers.CharField(source='to_employee.user.username', read_only=True)
@@ -75,17 +76,13 @@ class EditPerformanceRatingSerializer(serializers.ModelSerializer):
     def validate_rating_id(self, value):
         user = self.context['user']
         try:
-            rating = PerformanceRating.objects.get(id=value, rated_by=user, deleted_at__isnull=True)
+            self.instance = PerformanceRating.objects.get(id=value, rated_by=user, deleted_at__isnull=True)
         except PerformanceRating.DoesNotExist:
             raise serializers.ValidationError("Performance rating not found or not authorized to edit.")
         return value
 
-    def update_instance(self):
-        """Get and return the instance after validation"""
-        return PerformanceRating.objects.get(id=self.validated_data['rating_id'])
-
     def save(self, **kwargs):
-        rating = self.update_instance()
+        rating = self.instance
         rating.rating = self.validated_data.get('rating', rating.rating)
         rating.review_comment = self.validated_data.get('review_comment', rating.review_comment)
         rating.review_date = self.validated_data.get('review_date', rating.review_date)
