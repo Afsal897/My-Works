@@ -1,0 +1,33 @@
+.animated-bg {
+  background: linear-gradient(
+    120deg,
+    #0f2027,
+    #203a43,
+    #2c5364,
+    #1b1b2f,
+    #162447,
+    #1f4068
+  );
+  background-size: 600% 600%;
+  animation: stylishGradient 20s ease-in-out infinite;
+}
+
+@keyframes stylishGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  25% {
+    background-position: 50% 100%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  75% {
+    background-position: 50% 0%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+

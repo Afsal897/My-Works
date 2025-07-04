@@ -1,0 +1,33 @@
+# 🧠 Portfolio Backend API (Flask + SQLite + JWT)
+
+This is a lightweight Flask backend for a personal portfolio website, featuring:
+- Project and skill management
+- Contact form submission
+- JWT-based authentication for admin
+- SQLite for quick setup
+
+---
+
+## 🔧 Tech Stack
+
+- **Python** + **Flask**
+- **SQLite** (file-based DB)
+- **SQLAlchemy** ORM
+- **Flask-JWT-Extended** (secure login)
+- **Marshmallow** (optional, for serialization)
+- **CORS** enabled for frontend
+
+---
+
+## 📁 Project Structure
+
+portfolio-backend/
+├── app/
+│ ├── init.py # App setup, DB init, JWT
+│ ├── models.py # SQLAlchemy models
+│ ├── routes.py # Public and protected routes
+│ └── view.py # App configuration
+│ └── utils.py 
+├── main.py # Entry point
+├── requirements.txt # Dependencies
+└── README.md
